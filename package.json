@@ -9,14 +9,27 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "frappe-function-tester.helloWorld",
-      "title": "Hello World"
-    }]
+    "commands": [
+      {
+        "command": "frappeTester.runFunction",
+        "title": "Run Function in Bench Console"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "frappeTester.runFunction",
+          "when": "editorLangId == python",
+          "group": "navigation"
+        }
+      ]
+    }
   },
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
