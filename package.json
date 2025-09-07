@@ -13,14 +13,14 @@
   "contributes": {
     "commands": [
       {
-        "command": "frappeTester.runFunction",
+        "command": "frappe-function-tester.run-in-bench-console",
         "title": "Run Function in Bench Console"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "frappeTester.runFunction",
+          "command": "frappe-function-tester.run-in-bench-console",
           "when": "editorLangId == python",
           "group": "navigation"
         }
@@ -36,11 +36,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/estree": "^1.0.8",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/json-schema": "^7.0.15",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.13",
     "@types/vscode": "^1.103.0",
-    "@types/mocha": "^10.0.9",
-    "@types/node": "20.x",
-    "eslint": "^9.13.0",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.13.0"
   }
 }

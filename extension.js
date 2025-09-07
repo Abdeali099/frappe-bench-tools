@@ -1,36 +1,91 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-const vscode = require('vscode');
+const vscode = require("vscode");
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+// constants
+const TERMINAL_NAME = "Bench Console";
+const DELAY = 1500;
+const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
+const BASE = "frappe-function-tester";
+const RUN_IN_BENCH_CONSOLE_COMMAND = `${BASE}.run-in-bench-console`;
+const BENCH_CONSOLE_COMMAND = "bench console --autoreload";
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+  const disposable = vscode.commands.registerCommand(
+    RUN_IN_BENCH_CONSOLE_COMMAND,
+    async function () {
+      // Step 1: Call the other extension’s command (copy import statement)
+      try {
+        await vscode.commands.executeCommand(IMPORT_COMMAND);
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          "Failed to copy import statement. Please ensure 'Copy Python Path' extension is installed and try again."
+        );
+        return;
+      }
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "frappe-function-tester" is now active!');
+      // Step 2: Read the import statement from clipboard
+      const importStatement = await vscode.env.clipboard.readText();
+      if (!importStatement || !importStatement.startsWith("from ")) {
+        vscode.window.showErrorMessage(
+          "Failed to get a valid import statement."
+        );
+        return;
+      }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('frappe-function-tester.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+      // Step 3: Extract function/class name
+      //   TODO: only fetch last name no need of choice beacuse in copy only one import can come at a time
+      const parts = importStatement.split("import");
+      if (parts.length < 2) {
+        vscode.window.showErrorMessage("Invalid import statement format.");
+        return;
+      }
+      let functions = parts[1].split(",").map((f) => f.trim());
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Frappe Function Tester!');
-	});
+      let functionName;
+      if (functions.length > 1) {
+        functionName = await vscode.window.showQuickPick(functions, {
+          placeHolder: "Select function to run",
+        });
+        if (!functionName) return; // user cancelled
+      } else {
+        functionName = functions[0];
+      }
 
-	context.subscriptions.push(disposable);
+      // Step 4: Open/reuse terminal
+      let terminal = vscode.window.terminals.find(
+        (t) => t.name === TERMINAL_NAME
+      );
+
+      if (!terminal) {
+        terminal = vscode.window.createTerminal(TERMINAL_NAME);
+        terminal.show();
+
+        // Wait longer so auto "source ..." finishes
+        setTimeout(() => {
+          terminal.sendText(BENCH_CONSOLE_COMMAND);
+
+          // Wait again for REPL to boot before sending Python code
+          setTimeout(() => {
+            terminal.sendText(importStatement);
+            terminal.sendText(`${functionName}()`);
+          }, DELAY);
+        }, DELAY);
+      } else {
+        terminal.show();
+        terminal.sendText(importStatement);
+        terminal.sendText(`${functionName}()`);
+      }
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 function deactivate() {}
 
 module.exports = {
-	activate,
-	deactivate
-}
+  activate,
+  deactivate,
+};
