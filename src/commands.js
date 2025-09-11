@@ -31,8 +31,13 @@ function registerCommands(context) {
   const importAll = vscode.commands.registerCommand(
     IMPORT_ALL_COMMAND,
     async () => {
-      const importStatement = await copyImportStatement();
+      let  importStatement = await copyImportStatement();
       if (!importStatement || !importStatement.startsWith("from ")) return;
+
+      // change last word to `*`
+      const parts = importStatement.split("import");
+      parts[parts.length - 1] = " *";
+      importStatement = parts.join("import");
 
       await sendToBenchConsole(importStatement);
     }
