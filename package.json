@@ -21,17 +21,28 @@
         "title": "Import All in Bench Console (Paste Import Only)"
       }
     ],
+    "submenus": [
+      {
+        "id": "console-playground",
+        "label": "Console Playground"
+      }
+    ],
     "menus": {
       "editor/context": [
         {
-          "command": "frappe-bench-console-playground.run-in-bench-console",
+          "submenu": "console-playground",
           "when": "editorLangId == python",
-          "group": "navigation"
+          "group": "1_modification"
+        }
+      ],
+      "console-playground": [
+        {
+          "command": "frappe-bench-console-playground.run-in-bench-console",
+          "group": "playground@1"
         },
         {
           "command": "frappe-bench-console-playground.import-all-in-bench-console",
-          "when": "editorLangId == python",
-          "group": "navigation"
+          "group": "playground@2"
         }
       ]
     }
