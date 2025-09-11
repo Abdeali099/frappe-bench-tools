@@ -2,7 +2,7 @@ const vscode = require("vscode");
 const { copyImportStatement, extractName } = require("./utils");
 const { sendToBenchConsole } = require("./benchConsole");
 
-const BASE = "frappe-function-tester";
+const BASE = "frappe-bench-console-playground";
 const RUN_SINGLE_COMMAND = `${BASE}.run-in-bench-console`;
 const IMPORT_ALL_COMMAND = `${BASE}.import-all-in-bench-console`;
 

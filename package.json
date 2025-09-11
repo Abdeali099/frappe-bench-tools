@@ -1,7 +1,7 @@
 {
-  "name": "frappe-function-tester",
-  "displayName": "Frappe Function Tester",
-  "description": "Run Frappe functions easily inside Bench Console",
+  "name": "frappe-bench-console-playground",
+  "displayName": "Frappe Bench Console Playground",
+  "description": "Play around with Frappe functions inside Bench Console",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.103.0"
@@ -13,23 +13,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "frappe-function-tester.run-in-bench-console",
+        "command": "frappe-bench-console-playground.run-in-bench-console",
         "title": "Run Function in Bench Console"
       },
       {
-        "command": "frappe-function-tester.import-all-in-bench-console",
+        "command": "frappe-bench-console-playground.import-all-in-bench-console",
         "title": "Import All in Bench Console (Paste Import Only)"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "frappe-function-tester.run-in-bench-console",
+          "command": "frappe-bench-console-playground.run-in-bench-console",
           "when": "editorLangId == python",
           "group": "navigation"
         },
         {
-          "command": "frappe-function-tester.import-all-in-bench-console",
+          "command": "frappe-bench-console-playground.import-all-in-bench-console",
           "when": "editorLangId == python",
           "group": "navigation"
         }

@@ -1,6 +1,6 @@
-# frappe-function-tester README
+# frappe-bench-console-playground README
 
-This is the README for your extension "frappe-function-tester". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "frappe-bench-console-playground". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
