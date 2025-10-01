@@ -19,6 +19,10 @@
       {
         "command": "frappe-bench-console-playground.import-all-in-bench-console",
         "title": "Bench Console: Import All in Bench Console"
+      },
+      {
+        "command": "frappe-bench-console-playground.import-in-bench-console",
+        "title": "Bench Console: Import in Bench Console"
       }
     ],
     "submenus": [
@@ -43,6 +47,10 @@
         {
           "command": "frappe-bench-console-playground.import-all-in-bench-console",
           "group": "playground@2"
+        },
+        {
+          "command": "frappe-bench-console-playground.import-in-bench-console",
+          "group": "playground@3"
         }
       ]
     }

@@ -5,6 +5,7 @@ const { sendToBenchConsole } = require("./benchConsole");
 const BASE = "frappe-bench-console-playground";
 
 const COMMANDS = {
+  importObject: "import-in-bench-console",
   runFunction: "run-func-in-bench-console",
   importAll: "import-all-in-bench-console",
 };
@@ -15,12 +16,17 @@ const COMMANDS = {
  */
 const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
 
-/**
- * Run a single function:
- *  - Import the module
- *  - Extract function/class name
- *  - Send both to bench console
- */
+// TODO: not working for variables import
+async function handleImportObject() {
+  const importStatement = await copyImportStatement();
+  if (!importStatement?.startsWith("from ")) {
+    vscode.window.showInformationMessage("No valid import statement found.");
+    return;
+  }
+
+  await sendToBenchConsole(importStatement);
+}
+
 async function handleRunFunction() {
   const importStatement = await copyImportStatement();
 
@@ -37,9 +43,6 @@ async function handleRunFunction() {
   await sendToBenchConsole(...lines);
 }
 
-/**
- * Import everything from a module (`from x import *`).
- */
 async function handleImportAll() {
   let importStatement = await copyImportStatement();
   if (!importStatement?.startsWith("from ")) {
@@ -55,13 +58,11 @@ async function handleImportAll() {
   await sendToBenchConsole(importStatement);
 }
 
-/**
- * Register all extension commands.
- */
 function registerCommands(context) {
   const commandHandlers = {
     runFunction: handleRunFunction,
     importAll: handleImportAll,
+    importObject: handleImportObject,
   };
 
   for (const [key, handler] of Object.entries(commandHandlers)) {
