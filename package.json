@@ -13,12 +13,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "frappe-bench-console-playground.run-in-bench-console",
-        "title": "Run Function in Bench Console"
+        "command": "frappe-bench-console-playground.run-func-in-bench-console",
+        "title": "Bench Console: Run Function in Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.import-all-in-bench-console",
-        "title": "Import All in Bench Console (Paste Import Only)"
+        "title": "Bench Console: Import All in Bench Console"
       }
     ],
     "submenus": [
@@ -37,7 +37,7 @@
       ],
       "console-playground": [
         {
-          "command": "frappe-bench-console-playground.run-in-bench-console",
+          "command": "frappe-bench-console-playground.run-func-in-bench-console",
           "group": "playground@1"
         },
         {

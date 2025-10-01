@@ -8,9 +8,7 @@ const DELAY = 1500;
  * Get or create a terminal for bench console.
  */
 async function getBenchTerminal() {
-  let terminal = vscode.window.terminals.find(
-    (t) => t.name === TERMINAL_NAME
-  );
+  let terminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME);
 
   if (!terminal) {
     terminal = vscode.window.createTerminal(TERMINAL_NAME);
@@ -23,20 +21,16 @@ async function getBenchTerminal() {
   } else {
     terminal.show();
   }
-  
+
   return terminal;
 }
 
 /**
  * Send text to bench console terminal.
  */
-async function sendToBenchConsole(lines) {
+async function sendToBenchConsole(...lines) {
   const terminal = await getBenchTerminal();
-  if (Array.isArray(lines)) {
-    lines.forEach((line) => terminal.sendText(line));
-  } else {
-    terminal.sendText(lines);
-  }
+  lines.forEach((line) => terminal.sendText(line));
 }
 
 function sleep(ms) {

@@ -3,47 +3,74 @@ const { copyImportStatement, extractName } = require("./utils");
 const { sendToBenchConsole } = require("./benchConsole");
 
 const BASE = "frappe-bench-console-playground";
-const RUN_SINGLE_COMMAND = `${BASE}.run-in-bench-console`;
-const IMPORT_ALL_COMMAND = `${BASE}.import-all-in-bench-console`;
+
+const COMMANDS = {
+  runFunction: "run-func-in-bench-console",
+  importAll: "import-all-in-bench-console",
+};
+
+/**
+ * Build full VSCode command ID.
+ * @param {string} key
+ */
+const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
+
+/**
+ * Run a single function:
+ *  - Import the module
+ *  - Extract function/class name
+ *  - Send both to bench console
+ */
+async function handleRunFunction() {
+  const importStatement = await copyImportStatement();
+
+  if (!importStatement?.startsWith("from ")) {
+    vscode.window.showInformationMessage("No valid import statement found.");
+    return;
+  }
+
+  const lines = [importStatement];
+
+  const name = extractName(importStatement, true);
+  if (name) lines.push(name);
+
+  await sendToBenchConsole(...lines);
+}
+
+/**
+ * Import everything from a module (`from x import *`).
+ */
+async function handleImportAll() {
+  let importStatement = await copyImportStatement();
+  if (!importStatement?.startsWith("from ")) {
+    vscode.window.showInformationMessage("No valid import statement found.");
+    return;
+  }
+
+  // change last word to `*`
+  const parts = importStatement.split("import");
+  parts[parts.length - 1] = " *";
+  importStatement = parts.join("import");
+
+  await sendToBenchConsole(importStatement);
+}
 
 /**
  * Register all extension commands.
  */
 function registerCommands(context) {
-  // 1. Run single function (import + paste function name)
-  const runSingle = vscode.commands.registerCommand(
-    RUN_SINGLE_COMMAND,
-    async () => {
-      const importStatement = await copyImportStatement();
-      if (!importStatement || !importStatement.startsWith("from ")) return;
+  const commandHandlers = {
+    runFunction: handleRunFunction,
+    importAll: handleImportAll,
+  };
 
-      const name = extractName(importStatement);
-      if (!name) {
-        vscode.window.showErrorMessage("Could not extract function/class name.");
-        return;
-      }
-
-      await sendToBenchConsole([importStatement, name]);
-    }
-  );
-
-  // 2. Import all (only import statement, no function name)
-  const importAll = vscode.commands.registerCommand(
-    IMPORT_ALL_COMMAND,
-    async () => {
-      let  importStatement = await copyImportStatement();
-      if (!importStatement || !importStatement.startsWith("from ")) return;
-
-      // change last word to `*`
-      const parts = importStatement.split("import");
-      parts[parts.length - 1] = " *";
-      importStatement = parts.join("import");
-
-      await sendToBenchConsole(importStatement);
-    }
-  );
-
-  context.subscriptions.push(runSingle, importAll);
+  for (const [key, handler] of Object.entries(commandHandlers)) {
+    const disposable = vscode.commands.registerCommand(
+      getCommandId(key),
+      handler
+    );
+    context.subscriptions.push(disposable);
+  }
 }
 
 module.exports = { registerCommands };

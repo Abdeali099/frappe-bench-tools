@@ -22,10 +22,11 @@ async function copyImportStatement() {
  * Extract function/class name from import statement.
  * Example: `from module.path import my_function` => "my_function"
  */
-function extractName(importStatement) {
+function extractName(importStatement, callable = false) {
   const parts = importStatement.split("import");
   if (parts.length < 2) return null;
-  return parts[1].trim().split(",")[0]; // first name only
+  const name = parts[1].trim().split(",")[0]; // first name only
+  return callable ? `${name}()` : name;
 }
 
 module.exports = {
