@@ -32,6 +32,10 @@
       {
         "command": "frappe-bench-console-playground.run-func-in-bench-console",
         "title": "Bench Console: Run Function in Bench Console"
+      },
+      {
+        "command": "frappe-bench-console-playground.bench-execute-command",
+        "title": "Bench: Execute Python Function"
       }
     ],
     "submenus": [
@@ -68,6 +72,10 @@
         {
           "command": "frappe-bench-console-playground.run-func-in-bench-console",
           "group": "run@1"
+        },
+        {
+          "command": "frappe-bench-console-playground.bench-execute-command",
+          "group": "execute@1"
         }
       ]
     }

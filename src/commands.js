@@ -3,8 +3,13 @@ const {
   copyImportStatement,
   extractName,
   getSelectedTextOrLines,
+  copyPythonPath,
 } = require("./utils");
-const { sendToBenchConsole, getBenchTerminal } = require("./benchConsole");
+const {
+  writeToConsole,
+  getConsoleTerminal,
+  getExecuteTerminal,
+} = require("./terminal");
 
 const BASE = "frappe-bench-console-playground";
 
@@ -14,16 +19,43 @@ const COMMANDS = {
   importObject: "import-in-bench-console",
   runFunction: "run-func-in-bench-console",
   importAll: "import-all-in-bench-console",
+  benchExecute: "bench-execute-command",
 };
 
-/**
- * Build full VSCode command ID.
- * @param {string} key
- */
-const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
+async function handleBenchExecute() {
+  // Try to get python path from selection or clipboard
+  let pythonPath = copyPythonPath();
+  if (!pythonPath) {
+    vscode.window.showInformationMessage("No Python path found.");
+    return;
+  }
+
+  // Prompt for args (optional)
+  let args = await vscode.window.showInputBox({
+    prompt: "Enter args as Python list (e.g. ['a', 'b', 'c']) or leave blank",
+    placeHolder: "['a', 'b', 'c']",
+  });
+  args = args ? args.trim() : null;
+
+  // Prompt for kwargs (optional)
+  let kwargs = await vscode.window.showInputBox({
+    prompt: "Enter kwargs as Python dict (e.g. {'key': 'val'}) or leave blank",
+    placeHolder: "{'key': 'val'}",
+  });
+  kwargs = kwargs ? kwargs.trim() : null;
+
+  // Build command
+  let cmd = `bench execute ${pythonPath}`;
+  if (args) cmd += ` --args '${args}'`;
+  if (kwargs) cmd += ` --kwargs '${kwargs}'`;
+
+  // Use a dedicated terminal for bench execute
+  const terminal = await getExecuteTerminal();
+  terminal.sendText(cmd);
+}
 
 async function handleOpenConsole() {
-  await getBenchTerminal();
+  await getConsoleTerminal();
 }
 
 async function handlePasteToConsole() {
@@ -35,7 +67,7 @@ async function handlePasteToConsole() {
 
   // send all selected text chunks to console
   for (const text of texts) {
-    await sendToBenchConsole(text);
+    await writeToConsole(text);
   }
 }
 
@@ -47,7 +79,7 @@ async function handleImportObject() {
     return;
   }
 
-  await sendToBenchConsole(importStatement);
+  await writeToConsole(importStatement);
 }
 
 async function handleRunFunction() {
@@ -63,7 +95,7 @@ async function handleRunFunction() {
   const name = extractName(importStatement, true);
   if (name) lines.push(name);
 
-  await sendToBenchConsole(...lines);
+  await writeToConsole(...lines);
 }
 
 async function handleImportAll() {
@@ -78,7 +110,7 @@ async function handleImportAll() {
   parts[parts.length - 1] = " *";
   importStatement = parts.join("import");
 
-  await sendToBenchConsole(importStatement);
+  await writeToConsole(importStatement);
 }
 
 function registerCommands(context) {
@@ -88,6 +120,7 @@ function registerCommands(context) {
     importObject: handleImportObject,
     openConsole: handleOpenConsole,
     pasteToConsole: handlePasteToConsole,
+    benchExecute: handleBenchExecute,
   };
 
   for (const [key, handler] of Object.entries(commandHandlers)) {
@@ -98,5 +131,12 @@ function registerCommands(context) {
     context.subscriptions.push(disposable);
   }
 }
+
+/**
+ * Build full VSCode command ID.
+ * @param {string} key
+ */
+const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
+
 
 module.exports = { registerCommands };
