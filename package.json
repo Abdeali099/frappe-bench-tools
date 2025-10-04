@@ -18,6 +18,10 @@
         "title": "Bench Console: Open Bench Console"
       },
       {
+        "command": "frappe-bench-console-playground.paste-to-bench-console",
+        "title": "Bench Console: Paste to Bench Console"
+      },
+      {
         "command": "frappe-bench-console-playground.import-in-bench-console",
         "title": "Bench Console: Import in Bench Console"
       },
@@ -48,6 +52,10 @@
         {
           "command": "frappe-bench-console-playground.open-bench-console",
           "group": "open@1"
+        },
+        {
+          "command": "frappe-bench-console-playground.paste-to-bench-console",
+          "group": "import@0"
         },
         {
           "command": "frappe-bench-console-playground.import-in-bench-console",

@@ -1,11 +1,16 @@
 const vscode = require("vscode");
-const { copyImportStatement, extractName } = require("./utils");
-const { sendToBenchConsole,getBenchTerminal } = require("./benchConsole");
+const {
+  copyImportStatement,
+  extractName,
+  getSelectedTextOrLines,
+} = require("./utils");
+const { sendToBenchConsole, getBenchTerminal } = require("./benchConsole");
 
 const BASE = "frappe-bench-console-playground";
 
 const COMMANDS = {
   openConsole: "open-bench-console",
+  pasteToConsole: "paste-to-bench-console",
   importObject: "import-in-bench-console",
   runFunction: "run-func-in-bench-console",
   importAll: "import-all-in-bench-console",
@@ -19,6 +24,19 @@ const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
 
 async function handleOpenConsole() {
   await getBenchTerminal();
+}
+
+async function handlePasteToConsole() {
+  const texts = getSelectedTextOrLines();
+  if (!texts.length) {
+    vscode.window.showInformationMessage("Nothing to paste.");
+    return;
+  }
+
+  // send all selected text chunks to console
+  for (const text of texts) {
+    await sendToBenchConsole(text);
+  }
 }
 
 // TODO: not working for variables import
@@ -69,6 +87,7 @@ function registerCommands(context) {
     importAll: handleImportAll,
     importObject: handleImportObject,
     openConsole: handleOpenConsole,
+    pasteToConsole: handlePasteToConsole,
   };
 
   for (const [key, handler] of Object.entries(commandHandlers)) {

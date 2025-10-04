@@ -29,7 +29,36 @@ function extractName(importStatement, callable = false) {
   return callable ? `${name}()` : name;
 }
 
+/**
+ * Get selected text(s) from the active editor.
+ * - If there are selections, return all selected texts.
+ * - If no selection, return the full line(s) where the cursor(s) are.
+ *
+ * @returns {string[]} array of strings (one per selection/line)
+ */
+function getSelectedTextOrLines() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showErrorMessage("No active editor found.");
+    return [];
+  }
+
+  const { document, selections } = editor;
+
+  return selections
+    .map((sel) => {
+      if (!sel.isEmpty) {
+        return document.getText(sel);
+      } else {
+        const line = document.lineAt(sel.active.line);
+        return line.text;
+      }
+    })
+    .filter((text) => text.length > 0);
+}
+
 module.exports = {
   copyImportStatement,
   extractName,
+  getSelectedTextOrLines,
 };
