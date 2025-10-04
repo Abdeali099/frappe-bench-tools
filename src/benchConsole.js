@@ -27,9 +27,13 @@ async function getBenchTerminal() {
 
 /**
  * Send text to bench console terminal.
+ * @param {string[]} lines
  */
 async function sendToBenchConsole(...lines) {
   const terminal = await getBenchTerminal();
+
+  if (!lines || lines.length === 0) return;
+
   lines.forEach((line) => terminal.sendText(line));
 }
 
@@ -39,4 +43,5 @@ function sleep(ms) {
 
 module.exports = {
   sendToBenchConsole,
+  getBenchTerminal
 };

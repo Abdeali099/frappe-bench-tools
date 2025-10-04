@@ -1,10 +1,11 @@
 const vscode = require("vscode");
 const { copyImportStatement, extractName } = require("./utils");
-const { sendToBenchConsole } = require("./benchConsole");
+const { sendToBenchConsole,getBenchTerminal } = require("./benchConsole");
 
 const BASE = "frappe-bench-console-playground";
 
 const COMMANDS = {
+  openConsole: "open-bench-console",
   importObject: "import-in-bench-console",
   runFunction: "run-func-in-bench-console",
   importAll: "import-all-in-bench-console",
@@ -15,6 +16,10 @@ const COMMANDS = {
  * @param {string} key
  */
 const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
+
+async function handleOpenConsole() {
+  await getBenchTerminal();
+}
 
 // TODO: not working for variables import
 async function handleImportObject() {
@@ -63,6 +68,7 @@ function registerCommands(context) {
     runFunction: handleRunFunction,
     importAll: handleImportAll,
     importObject: handleImportObject,
+    openConsole: handleOpenConsole,
   };
 
   for (const [key, handler] of Object.entries(commandHandlers)) {

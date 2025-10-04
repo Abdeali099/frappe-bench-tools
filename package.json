@@ -1,5 +1,6 @@
 {
   "name": "frappe-bench-console-playground",
+  "publisher": "abdeali",
   "displayName": "Frappe Bench Console Playground",
   "description": "Play around with Frappe functions inside Bench Console",
   "version": "0.0.1",
@@ -13,16 +14,20 @@
   "contributes": {
     "commands": [
       {
-        "command": "frappe-bench-console-playground.run-func-in-bench-console",
-        "title": "Bench Console: Run Function in Bench Console"
+        "command": "frappe-bench-console-playground.open-bench-console",
+        "title": "Bench Console: Open Bench Console"
+      },
+      {
+        "command": "frappe-bench-console-playground.import-in-bench-console",
+        "title": "Bench Console: Import in Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.import-all-in-bench-console",
         "title": "Bench Console: Import All in Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.import-in-bench-console",
-        "title": "Bench Console: Import in Bench Console"
+        "command": "frappe-bench-console-playground.run-func-in-bench-console",
+        "title": "Bench Console: Run Function in Bench Console"
       }
     ],
     "submenus": [
@@ -36,21 +41,25 @@
         {
           "submenu": "console-playground",
           "when": "editorLangId == python",
-          "group": "1_modification"
+          "group": "6_copypath"
         }
       ],
       "console-playground": [
         {
-          "command": "frappe-bench-console-playground.run-func-in-bench-console",
-          "group": "playground@1"
-        },
-        {
-          "command": "frappe-bench-console-playground.import-all-in-bench-console",
-          "group": "playground@2"
+          "command": "frappe-bench-console-playground.open-bench-console",
+          "group": "open@1"
         },
         {
           "command": "frappe-bench-console-playground.import-in-bench-console",
-          "group": "playground@3"
+          "group": "import@1"
+        },
+        {
+          "command": "frappe-bench-console-playground.import-all-in-bench-console",
+          "group": "import@2"
+        },
+        {
+          "command": "frappe-bench-console-playground.run-func-in-bench-console",
+          "group": "run@1"
         }
       ]
     }
