@@ -12,10 +12,7 @@ async function copyImportStatement() {
     const importStatement = await vscode.env.clipboard.readText();
     return importStatement.trim();
   } catch (e) {
-    vscode.window.showErrorMessage(
-      "Failed to copy import statement. Ensure 'Copy Python Path' extension is installed. Install https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
-    );
-    return null;
+    copyPythonPathExtensionMissing();
   }
 }
 
@@ -25,10 +22,7 @@ async function copyPythonPath() {
     const pythonPath = await vscode.env.clipboard.readText();
     return pythonPath.trim();
   } catch (e) {
-    vscode.window.showErrorMessage(
-      "Failed to copy Python path. Ensure 'Copy Python Path' extension is installed. Install https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
-    );
-    return null;
+    copyPythonPathExtensionMissing();
   }
 }
 
@@ -69,6 +63,12 @@ function getSelectedTextOrLines() {
       }
     })
     .filter((text) => text.length > 0);
+}
+
+function copyPythonPathExtensionMissing() {
+  vscode.window.showErrorMessage(
+    "Copy Python Path extension is not installed. Install it from https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
+  );
 }
 
 module.exports = {
