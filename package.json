@@ -15,63 +15,63 @@
     "commands": [
       {
         "command": "frappe-bench-console-playground.open-bench-console",
-        "title": "Bench Console: Open Bench Console"
+        "title": "Open Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.paste-to-bench-console",
-        "title": "Bench Console: Paste to Bench Console"
+        "title": "Paste to Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.import-in-bench-console",
-        "title": "Bench Console: Import in Bench Console"
+        "title": "Import in Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.import-all-in-bench-console",
-        "title": "Bench Console: Import All in Bench Console"
+        "title": "Import All in Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.run-func-in-bench-console",
-        "title": "Bench Console: Run Function in Bench Console"
+        "title": "Run Function in Bench Console"
       },
       {
         "command": "frappe-bench-console-playground.bench-execute-command",
-        "title": "Bench: Execute Python Function"
+        "title": "Bench Execute Python Function"
       }
     ],
     "submenus": [
       {
-        "id": "console-playground",
-        "label": "Console Playground"
+        "id": "bench-console-playground",
+        "label": "Bench Console Playground"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "submenu": "console-playground",
+          "submenu": "bench-console-playground",
           "when": "editorLangId == python",
           "group": "6_copypath"
         }
       ],
-      "console-playground": [
+      "bench-console-playground": [
         {
           "command": "frappe-bench-console-playground.open-bench-console",
-          "group": "open@1"
+          "group": "bench@1"
         },
         {
           "command": "frappe-bench-console-playground.paste-to-bench-console",
-          "group": "import@0"
+          "group": "bench@2"
         },
         {
           "command": "frappe-bench-console-playground.import-in-bench-console",
-          "group": "import@1"
+          "group": "bench@3"
         },
         {
           "command": "frappe-bench-console-playground.import-all-in-bench-console",
-          "group": "import@2"
+          "group": "bench@4"
         },
         {
           "command": "frappe-bench-console-playground.run-func-in-bench-console",
-          "group": "run@1"
+          "group": "bench@5"
         },
         {
           "command": "frappe-bench-console-playground.bench-execute-command",
