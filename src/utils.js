@@ -1,6 +1,7 @@
 const vscode = require("vscode");
 
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
+const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 
 /**
  * Copies Python import statement using external extension.
@@ -13,6 +14,19 @@ async function copyImportStatement() {
   } catch (e) {
     vscode.window.showErrorMessage(
       "Failed to copy import statement. Ensure 'Copy Python Path' extension is installed. Install https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
+    );
+    return null;
+  }
+}
+
+async function copyPythonPath() {
+  try {
+    await vscode.commands.executeCommand(PYTHON_PATH_COMMAND);
+    const pythonPath = await vscode.env.clipboard.readText();
+    return pythonPath.trim();
+  } catch (e) {
+    vscode.window.showErrorMessage(
+      "Failed to copy Python path. Ensure 'Copy Python Path' extension is installed. Install https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
     );
     return null;
   }
@@ -61,4 +75,5 @@ module.exports = {
   copyImportStatement,
   extractName,
   getSelectedTextOrLines,
+  copyPythonPath,
 };
