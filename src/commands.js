@@ -11,7 +11,7 @@ const {
   getExecuteTerminal,
 } = require("./terminal");
 
-const BASE = "frappe-bench-console-playground";
+const BASE = "frappe-bench-tools";
 
 const COMMANDS = {
   openConsole: "open-bench-console",

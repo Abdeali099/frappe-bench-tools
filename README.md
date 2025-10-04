@@ -1,6 +1,6 @@
-# frappe-bench-console-playground README
+# frappe-bench-tools README
 
-This is the README for your extension "frappe-bench-console-playground". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "frappe-bench-tools". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

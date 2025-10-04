@@ -1,8 +1,8 @@
 {
-  "name": "frappe-bench-console-playground",
+  "name": "frappe-bench-tools",
   "publisher": "abdeali",
-  "displayName": "Frappe Bench Console Playground",
-  "description": "Play around with Frappe functions inside Bench Console",
+  "displayName": "Frappe Bench Tools",
+  "description": "Interact with different frappe bench commands",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.103.0"
@@ -14,67 +14,67 @@
   "contributes": {
     "commands": [
       {
-        "command": "frappe-bench-console-playground.open-bench-console",
+        "command": "frappe-bench-tools.open-bench-console",
         "title": "Open Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.paste-to-bench-console",
+        "command": "frappe-bench-tools.paste-to-bench-console",
         "title": "Paste to Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.import-in-bench-console",
+        "command": "frappe-bench-tools.import-in-bench-console",
         "title": "Import in Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.import-all-in-bench-console",
+        "command": "frappe-bench-tools.import-all-in-bench-console",
         "title": "Import All in Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.run-func-in-bench-console",
+        "command": "frappe-bench-tools.run-func-in-bench-console",
         "title": "Run Function in Bench Console"
       },
       {
-        "command": "frappe-bench-console-playground.bench-execute-command",
+        "command": "frappe-bench-tools.bench-execute-command",
         "title": "Bench Execute Python Function"
       }
     ],
     "submenus": [
       {
-        "id": "bench-console-playground",
-        "label": "Bench Console Playground"
+        "id": "bench-terminal",
+        "label": "Bench Terminal"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "submenu": "bench-console-playground",
+          "submenu": "bench-terminal",
           "when": "editorLangId == python",
           "group": "6_copypath"
         }
       ],
-      "bench-console-playground": [
+      "bench-terminal": [
         {
-          "command": "frappe-bench-console-playground.open-bench-console",
+          "command": "frappe-bench-tools.open-bench-console",
           "group": "bench@1"
         },
         {
-          "command": "frappe-bench-console-playground.paste-to-bench-console",
+          "command": "frappe-bench-tools.paste-to-bench-console",
           "group": "bench@2"
         },
         {
-          "command": "frappe-bench-console-playground.import-in-bench-console",
+          "command": "frappe-bench-tools.import-in-bench-console",
           "group": "bench@3"
         },
         {
-          "command": "frappe-bench-console-playground.import-all-in-bench-console",
+          "command": "frappe-bench-tools.import-all-in-bench-console",
           "group": "bench@4"
         },
         {
-          "command": "frappe-bench-console-playground.run-func-in-bench-console",
+          "command": "frappe-bench-tools.run-func-in-bench-console",
           "group": "bench@5"
         },
         {
-          "command": "frappe-bench-console-playground.bench-execute-command",
+          "command": "frappe-bench-tools.bench-execute-command",
           "group": "execute@1"
         }
       ]
