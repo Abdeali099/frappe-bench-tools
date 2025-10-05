@@ -40,8 +40,8 @@ async function handleBenchExecute() {
   // Prompt for args (optional)
   if (acceptArgsForExecute) {
     args = await vscode.window.showInputBox({
-      prompt: "Enter args as Python list (e.g. ['a', 'b', 'c']) or leave blank",
-      placeHolder: "['a', 'b', 'c']",
+      prompt: 'Enter args as Python list (e.g. ["a", "b", "c"]) or leave blank',
+      placeHolder: '["a", "b", "c"]',
     });
   }
 
@@ -51,8 +51,8 @@ async function handleBenchExecute() {
   if (acceptKwargsForExecute) {
     kwargs = await vscode.window.showInputBox({
       prompt:
-        "Enter kwargs as Python dict (e.g. {'key': 'val'}) or leave blank",
-      placeHolder: "{'key': 'val'}",
+        'Enter kwargs as Python dict (e.g. {"key": "val"}) or leave blank',
+      placeHolder: '{"key": "val"}',
     });
   }
 
