@@ -78,7 +78,54 @@
           "group": "execute@1"
         }
       ]
-    }
+    },
+    "configuration": [
+      {
+        "title": "Frappe Bench Tools: General",
+        "properties": {
+          "frappeBenchTools.siteName": {
+            "type": "string",
+            "default": "frappe.localhost",
+            "description": "The site name to use when running bench commands (otherwise default bench site will be used)."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Console",
+        "properties": {
+          "frappeBenchTools.consoleTerminalName": {
+            "type": "string",
+            "default": "Bench Console",
+            "description": "The name of the bench console terminal."
+          },
+          "frappeBenchTools.autoReload": {
+            "type": "boolean",
+            "default": true,
+            "description": "Automatically reload the bench console when files change."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Execute",
+        "properties": {
+          "frappeBenchTools.executeTerminalName": {
+            "type": "string",
+            "default": "Bench Execute",
+            "description": "The name of the bench execute terminal."
+          },
+          "frappeBenchTools.acceptArgsForExecute": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to accept arguments for the execute command."
+          },
+          "frappeBenchTools.acceptKwargsForExecute": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to accept keyword arguments for the execute command."
+          }
+        }
+      }
+    ]
   },
   "activationEvents": [
     "onLanguage:python"
