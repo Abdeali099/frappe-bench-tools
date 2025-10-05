@@ -10,7 +10,7 @@ const {
 const {
   writeToConsole,
   getConsoleTerminal,
-  getExecuteTerminal,
+  writeToExecuteTerminal
 } = require("./terminal");
 
 const BASE = "frappe-bench-tools";
@@ -62,8 +62,7 @@ async function handleBenchExecute() {
   const cmd = getExecuteCommand(pythonPath, args, kwargs);
 
   // Use a dedicated terminal for bench execute
-  const terminal = await getExecuteTerminal();
-  terminal.sendText(cmd);
+  await writeToExecuteTerminal(cmd);
 }
 
 async function handleOpenConsole() {
