@@ -4,6 +4,8 @@ const {
   extractName,
   getSelectedTextOrLines,
   copyPythonPath,
+  getBenchToolConfig,
+  getExecuteCommand,
 } = require("./utils");
 const {
   writeToConsole,
@@ -24,30 +26,40 @@ const COMMANDS = {
 
 async function handleBenchExecute() {
   // Try to get python path from selection or clipboard
-  let pythonPath = copyPythonPath();
+  let pythonPath = await copyPythonPath();
   if (!pythonPath) {
     vscode.window.showInformationMessage("No Python path found.");
     return;
   }
 
+  const { acceptArgsForExecute, acceptKwargsForExecute } = getBenchToolConfig();
+
+  let args = null;
+  let kwargs = null;
+
   // Prompt for args (optional)
-  let args = await vscode.window.showInputBox({
-    prompt: "Enter args as Python list (e.g. ['a', 'b', 'c']) or leave blank",
-    placeHolder: "['a', 'b', 'c']",
-  });
+  if (acceptArgsForExecute) {
+    args = await vscode.window.showInputBox({
+      prompt: "Enter args as Python list (e.g. ['a', 'b', 'c']) or leave blank",
+      placeHolder: "['a', 'b', 'c']",
+    });
+  }
+
   args = args ? args.trim() : null;
 
   // Prompt for kwargs (optional)
-  let kwargs = await vscode.window.showInputBox({
-    prompt: "Enter kwargs as Python dict (e.g. {'key': 'val'}) or leave blank",
-    placeHolder: "{'key': 'val'}",
-  });
+  if (acceptKwargsForExecute) {
+    kwargs = await vscode.window.showInputBox({
+      prompt:
+        "Enter kwargs as Python dict (e.g. {'key': 'val'}) or leave blank",
+      placeHolder: "{'key': 'val'}",
+    });
+  }
+
   kwargs = kwargs ? kwargs.trim() : null;
 
   // Build command
-  let cmd = `bench execute ${pythonPath}`;
-  if (args) cmd += ` --args '${args}'`;
-  if (kwargs) cmd += ` --kwargs '${kwargs}'`;
+  const cmd = getExecuteCommand(pythonPath, args, kwargs);
 
   // Use a dedicated terminal for bench execute
   const terminal = await getExecuteTerminal();
@@ -137,6 +149,5 @@ function registerCommands(context) {
  * @param {string} key
  */
 const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
-
 
 module.exports = { registerCommands };

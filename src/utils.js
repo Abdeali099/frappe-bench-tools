@@ -3,6 +3,70 @@ const vscode = require("vscode");
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
 const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 
+const WORKSPACE_NAME = "frappeBenchTools";
+const CONSOLE_TERMINAL_NAME = "Bench Console";
+const EXECUTE_TERMINAL_NAME = "Bench Execute";
+
+function getBenchToolConfig() {
+  const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
+
+  return {
+    siteName: config.get("siteName"),
+    consoleTerminalName:
+      config.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
+    autoReload: config.get("autoReload"),
+    executeTerminalName:
+      config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
+    acceptArgsForExecute: config.get("acceptArgsForExecute"),
+    acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+  };
+}
+
+function getConsoleCommand() {
+  const config = getBenchToolConfig();
+  const parts = ["bench"];
+
+  // add site if specified
+  if (config.siteName) {
+    parts.push("--site", config.siteName);
+  }
+
+  parts.push("console");
+
+  // add autoreload if enabled
+  if (config.autoReload) {
+    parts.push("--autoreload");
+  }
+
+  return parts.join(" ");
+}
+
+/**
+ * @param {string} pythonPath
+ */
+function getExecuteCommand(pythonPath, args = null, kwargs = null) {
+  const config = getBenchToolConfig();
+  const parts = ["bench"];
+
+  // add site if specified
+  if (config.siteName) {
+    parts.push("--site", config.siteName);
+  }
+
+  parts.push("execute");
+  parts.push(pythonPath);
+
+  if (args && config.acceptArgsForExecute) {
+    parts.push("--args", `'${args}'`);
+  }
+
+  if (kwargs && config.acceptKwargsForExecute) {
+    parts.push("--kwargs", `'${kwargs}'`);
+  }
+
+  return parts.join(" ");
+}
+
 /**
  * Copies Python import statement using external extension.
  */
@@ -29,6 +93,7 @@ async function copyPythonPath() {
 /**
  * Extract function/class name from import statement.
  * Example: `from module.path import my_function` => "my_function"
+ * @param {string} importStatement
  */
 function extractName(importStatement, callable = false) {
   const parts = importStatement.split("import");
@@ -76,4 +141,7 @@ module.exports = {
   extractName,
   getSelectedTextOrLines,
   copyPythonPath,
+  getBenchToolConfig,
+  getConsoleCommand,
+  getExecuteCommand,
 };

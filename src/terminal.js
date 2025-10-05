@@ -1,8 +1,5 @@
 const vscode = require("vscode");
-
-const CONSOLE_TERMINAL = "Bench Console";
-const BENCH_CONSOLE_COMMAND = "bench console --autoreload";
-const TERMINAL_NAME = "Bench Execute";
+const { getBenchToolConfig, getConsoleCommand } = require("./utils");
 
 const DELAY = 1500;
 
@@ -10,17 +7,16 @@ const DELAY = 1500;
  * Get or create a terminal for bench console.
  */
 async function getConsoleTerminal() {
-  let terminal = vscode.window.terminals.find(
-    (t) => t.name === CONSOLE_TERMINAL
-  );
+  const terminalName = getBenchToolConfig().consoleTerminalName;
+  let terminal = vscode.window.terminals.find((t) => t.name === terminalName);
 
   if (!terminal) {
-    terminal = vscode.window.createTerminal(CONSOLE_TERMINAL);
+    terminal = vscode.window.createTerminal(terminalName);
     terminal.show();
 
     // wait for auto `source` to run, then start bench console
     await sleep(DELAY);
-    terminal.sendText(BENCH_CONSOLE_COMMAND);
+    terminal.sendText(getConsoleCommand());
   } else {
     terminal.show();
   }
@@ -45,9 +41,11 @@ async function writeToConsole(...lines) {
  * @returns {Promise<vscode.Terminal>}
  */
 async function getExecuteTerminal() {
-  let terminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME);
+  const terminalName = getBenchToolConfig().executeTerminalName;
+
+  let terminal = vscode.window.terminals.find((t) => t.name === terminalName);
   if (!terminal) {
-    terminal = vscode.window.createTerminal(TERMINAL_NAME);
+    terminal = vscode.window.createTerminal(terminalName);
     // wait for auto `source` to run, then start bench console
     await sleep(DELAY);
   }
