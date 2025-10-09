@@ -7,6 +7,16 @@ const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
 
+const KEY_WORDS = {
+  IMPORT: "import",
+  FROM: "from",
+  ALL: "*",
+};
+
+/**
+ * Reads configuration from workspace settings.
+ * @returns {object} Bench tool configurations
+ */
 function getBenchToolConfig() {
   const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
 
@@ -22,6 +32,10 @@ function getBenchToolConfig() {
   };
 }
 
+/**
+ * Gets the bench console command based on the workspace configuration.
+ * @returns {string} Console command (e.g. "bench --site mysite console --autoreload")
+ */
 function getConsoleCommand() {
   const config = getBenchToolConfig();
   const parts = ["bench"];
@@ -42,7 +56,11 @@ function getConsoleCommand() {
 }
 
 /**
+ * Gets the bench execute command for a given python path and optional args/kwargs.
  * @param {string} pythonPath
+ * @param {string|null} args - Python list as string (e.g. '["a", "b"]')
+ * @param {string|null} kwargs - Python dict as string (e.g. '{"key": "val"}')
+ * @returns {string} Bench execute command (e.g. "bench --site mysite execute my.module.func --args '["a", "b"]' --kwargs '{"key": "val"}'")
  */
 function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   const config = getBenchToolConfig();
@@ -69,17 +87,38 @@ function getExecuteCommand(pythonPath, args = null, kwargs = null) {
 
 /**
  * Copies Python import statement using external extension.
+ * @param {boolean} user_prompt - whether to prompt user to complete the statement if incomplete
+ * @returns {Promise<string|null>} import statement or null if failed
  */
-async function copyImportStatement() {
+async function copyImportStatement(user_prompt = true) {
   try {
     await vscode.commands.executeCommand(IMPORT_COMMAND);
-    const importStatement = await vscode.env.clipboard.readText();
+    let importStatement = await vscode.env.clipboard.readText();
+    if (user_prompt) {
+      importStatement = await completeImportStatementFromUser(importStatement);
+    }
     return importStatement.trim();
   } catch (e) {
     copyPythonPathExtensionMissing();
   }
 }
 
+function completeImportStatementFromUser(importStatement = null) {
+  if (isValidImportStatement(importStatement, false)) {
+    return importStatement.trim();
+  }
+
+  return vscode.window.showInputBox({
+    prompt: "Complete the import statement",
+    placeHolder: "from module.path import obj",
+    value: importStatement || "",
+  });
+}
+
+/**
+ * Copies Python dotted path using external extension.
+ * @returns {Promise<string|null>} python path or null if failed
+ */
 async function copyPythonPath() {
   try {
     await vscode.commands.executeCommand(PYTHON_PATH_COMMAND);
@@ -90,16 +129,12 @@ async function copyPythonPath() {
   }
 }
 
-/**
- * Extract function/class name from import statement.
- * Example: `from module.path import my_function` => "my_function"
- * @param {string} importStatement
+/** Notify user that Copy Python Path extension is missing.
  */
-function extractName(importStatement, callable = false) {
-  const parts = importStatement.split("import");
-  if (parts.length < 2) return null;
-  const name = parts[1].trim().split(",")[0]; // first name only
-  return callable ? `${name}()` : name;
+function copyPythonPathExtensionMissing() {
+  vscode.window.showErrorMessage(
+    "Copy Python Path extension is not installed. Install it from https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
+  );
 }
 
 /**
@@ -130,15 +165,66 @@ function getSelectedTextOrLines() {
     .filter((text) => text.length > 0);
 }
 
-function copyPythonPathExtensionMissing() {
-  vscode.window.showErrorMessage(
-    "Copy Python Path extension is not installed. Install it from https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
-  );
+/**
+ * Extract function/class name from import statement.
+ * Example: `from module.path import my_function` => "my_function"
+ * @param {string} importStatement
+ */
+function extractObjName(importStatement, callable = false) {
+  const parts = importStatement.split(KEY_WORDS.IMPORT);
+  if (parts.length < 2) return null;
+  const name = parts[1].trim().split(",")[0]; // first name only
+  return callable ? `${name}()` : name;
+}
+
+/** Convert import statement to import all (using *).
+ * Example: `from module.path import my_function` => `from module.path import *`
+ * @param {string} importStatement
+ * @returns {string|null} modified import statement or null if not applicable
+ */
+function convertToImportAll(importStatement) {
+  if (!importStatement?.startsWith(`${KEY_WORDS.FROM} `)) {
+    return null;
+  }
+
+  // change last word to `*`
+  const parts = importStatement.split(KEY_WORDS.IMPORT);
+  parts[parts.length - 1] = ` ${KEY_WORDS.ALL}`;
+  importStatement = parts.join(KEY_WORDS.IMPORT).trim();
+
+  return importStatement;
+}
+
+/** Check if import statement is valid (starts with "from ").
+ * @param {string} importStatement
+ * @param {boolean} notify - whether to notify user if invalid
+ * @returns {boolean} true if valid, false otherwise
+ */
+function isValidImportStatement(importStatement, notify = true) {
+  const parts = importStatement?.split(KEY_WORDS.IMPORT);
+
+  if (
+    importStatement &&
+    importStatement.startsWith(`${KEY_WORDS.FROM} `) &&
+    parts &&
+    parts.length >= 2 &&
+    parts[1].trim().length > 0
+  ) {
+    return true;
+  }
+
+  if (notify) {
+    vscode.window.showInformationMessage("No valid import statement found.");
+  }
+
+  return false;
 }
 
 module.exports = {
   copyImportStatement,
-  extractName,
+  isValidImportStatement,
+  extractObjName,
+  convertToImportAll,
   getSelectedTextOrLines,
   copyPythonPath,
   getBenchToolConfig,

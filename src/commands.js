@@ -1,16 +1,18 @@
 const vscode = require("vscode");
 const {
   copyImportStatement,
-  extractName,
+  extractObjName,
   getSelectedTextOrLines,
   copyPythonPath,
   getBenchToolConfig,
   getExecuteCommand,
+  convertToImportAll,
+  isValidImportStatement,
 } = require("./utils");
 const {
   writeToConsole,
   getConsoleTerminal,
-  writeToExecuteTerminal
+  writeToExecuteTerminal,
 } = require("./terminal");
 
 const BASE = "frappe-bench-tools";
@@ -18,8 +20,8 @@ const BASE = "frappe-bench-tools";
 const COMMANDS = {
   openConsole: "open-bench-console",
   pasteToConsole: "paste-to-bench-console",
-  importObject: "import-in-bench-console",
   runFunction: "run-func-in-bench-console",
+  importObject: "import-in-bench-console",
   importAll: "import-all-in-bench-console",
   benchExecute: "bench-execute-command",
 };
@@ -85,10 +87,8 @@ async function handlePasteToConsole() {
 // TODO: not working for variables import
 async function handleImportObject() {
   const importStatement = await copyImportStatement();
-  if (!importStatement?.startsWith("from ")) {
-    vscode.window.showInformationMessage("No valid import statement found.");
-    return;
-  }
+
+  if (!isValidImportStatement(importStatement)) return;
 
   await writeToConsole(importStatement);
 }
@@ -96,32 +96,22 @@ async function handleImportObject() {
 async function handleRunFunction() {
   const importStatement = await copyImportStatement();
 
-  if (!importStatement?.startsWith("from ")) {
-    vscode.window.showInformationMessage("No valid import statement found.");
-    return;
-  }
+  if (!isValidImportStatement(importStatement)) return;
 
   const lines = [importStatement];
 
-  const name = extractName(importStatement, true);
+  const name = extractObjName(importStatement, true);
   if (name) lines.push(name);
 
   await writeToConsole(...lines);
 }
 
 async function handleImportAll() {
-  let importStatement = await copyImportStatement();
-  if (!importStatement?.startsWith("from ")) {
-    vscode.window.showInformationMessage("No valid import statement found.");
-    return;
-  }
+  const importStatement = await copyImportStatement();
 
-  // change last word to `*`
-  const parts = importStatement.split("import");
-  parts[parts.length - 1] = " *";
-  importStatement = parts.join("import");
+  if (!isValidImportStatement(importStatement)) return;
 
-  await writeToConsole(importStatement);
+  await writeToConsole(convertToImportAll(importStatement));
 }
 
 function registerCommands(context) {
