@@ -37,10 +37,7 @@ async function handlePasteToConsole() {
     return;
   }
 
-  // send all selected text chunks to console
-  for (const text of texts) {
-    await writeToConsole(text);
-  }
+  await writeToConsole(...texts);
 }
 
 /** Import object in bench console terminal.
