@@ -103,12 +103,16 @@ async function copyImportStatement(user_prompt = true) {
   }
 }
 
-function completeImportStatementFromUser(importStatement = null) {
+/** Prompt user to complete import statement if incomplete.
+ * @param {string|null} importStatement - existing import statement (if any)
+ * @returns {Promise<string|null>} completed import statement or null if cancelled
+ */
+async function completeImportStatementFromUser(importStatement = null) {
   if (isValidImportStatement(importStatement, false)) {
     return importStatement.trim();
   }
 
-  return vscode.window.showInputBox({
+  return await vscode.window.showInputBox({
     prompt: "Complete the import statement",
     placeHolder: "from module.path import obj",
     value: importStatement || "",

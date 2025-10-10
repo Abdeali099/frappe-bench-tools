@@ -18,23 +18,29 @@ function sleep(ms) {
  * @returns {Promise<vscode.Terminal>}
  */
 async function getOrCreateTerminal(name, startupCommand = null) {
-  let terminal = vscode.window.terminals.find((t) => t.name === name);
+  try {
+    let terminal = vscode.window.terminals.find((t) => t.name === name);
 
-  if (!terminal) {
-    terminal = vscode.window.createTerminal(name);
-    terminal.show();
+    if (!terminal) {
+      terminal = vscode.window.createTerminal(name);
+      terminal.show();
 
-    // wait for shell init (like auto `source ...`)
-    await sleep(DELAY);
+      // wait for shell init (like auto `source ...`)
+      await sleep(DELAY);
 
-    if (startupCommand) {
-      terminal.sendText(startupCommand);
+      if (startupCommand) {
+        terminal.sendText(startupCommand);
+      }
+    } else {
+      terminal.show();
     }
-  } else {
-    terminal.show();
-  }
 
-  return terminal;
+    return terminal;
+  } catch (err) {
+    vscode.window.showErrorMessage(
+      `Error getting or creating terminal: ${err.message}`
+    );
+  }
 }
 
 /**
@@ -58,9 +64,14 @@ async function getExecuteTerminal() {
  * @param {...string} lines
  */
 async function writeToConsole(...lines) {
-  if (!lines || lines.length === 0) return;
+  if (!lines || lines.length === 0) {
+    vscode.window.showWarningMessage("No lines to write to console.");
+    return;
+  }
 
   const terminal = await getConsoleTerminal();
+  if (!terminal) return;
+
   lines.forEach((line) => terminal.sendText(line));
 }
 
@@ -69,9 +80,13 @@ async function writeToConsole(...lines) {
  * @param {...string} lines
  */
 async function writeToExecuteTerminal(...lines) {
-  if (!lines || lines.length === 0) return;
+  if (!lines || lines.length === 0) {
+    vscode.window.showWarningMessage("No command to execute in terminal.");
+    return;
+  }
 
   const terminal = await getExecuteTerminal();
+  if (!terminal) return;
   lines.forEach((line) => terminal.sendText(line));
 }
 
