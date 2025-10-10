@@ -15,20 +15,79 @@ const {
   writeToExecuteTerminal,
 } = require("./terminal");
 
-const BASE = "frappe-bench-tools";
+// ++++++++ Constants +++++++++ //
 
-const COMMANDS = {
-  openConsole: "open-bench-console",
-  pasteToConsole: "paste-to-bench-console",
-  runFunction: "run-func-in-bench-console",
-  importObject: "import-in-bench-console",
-  importAll: "import-all-in-bench-console",
-  benchExecute: "bench-execute-command",
-};
+// extension ID
+const ID = "frappe-bench-tools";
 
+// ++++++++ Command Handlers +++++++++ //
+
+/** Open bench console terminal.
+ */
+async function handleOpenConsole() {
+  await getConsoleTerminal();
+}
+
+/** Paste selected text or current lines to bench console terminal.
+ */
+async function handlePasteToConsole() {
+  const texts = getSelectedTextOrLines();
+  if (!texts.length) {
+    vscode.window.showInformationMessage("Nothing to paste.");
+    return;
+  }
+
+  // send all selected text chunks to console
+  for (const text of texts) {
+    await writeToConsole(text);
+  }
+}
+
+/** Import object in bench console terminal.
+ * If no valid import statement is found, user is prompted to enter one.
+ */
+async function handleImportObject() {
+  const importStatement = await copyImportStatement();
+
+  if (!isValidImportStatement(importStatement)) return;
+
+  await writeToConsole(importStatement);
+}
+
+/** Import all (*) in bench console terminal.
+ */
+async function handleImportAll() {
+  // user input not required here
+  const importStatement = await copyImportStatement(false);
+
+  if (!isValidImportStatement(importStatement)) return;
+
+  await writeToConsole(convertToImportAll(importStatement));
+}
+
+/** Run function in bench console terminal.
+ * If no valid import statement is found, user is prompted to enter one.
+ */
+async function handleRunFunction() {
+  const importStatement = await copyImportStatement();
+
+  if (!isValidImportStatement(importStatement)) return;
+
+  const lines = [importStatement];
+
+  const name = extractObjName(importStatement, true);
+  if (name) lines.push(name);
+
+  await writeToConsole(...lines);
+}
+
+/** Execute command in bench execute terminal.
+ * Prompts for args and kwargs if enabled in settings.
+ */
 async function handleBenchExecute() {
   // Try to get python path from selection or clipboard
   let pythonPath = await copyPythonPath();
+
   if (!pythonPath) {
     vscode.window.showInformationMessage("No Python path found.");
     return;
@@ -67,76 +126,29 @@ async function handleBenchExecute() {
   await writeToExecuteTerminal(cmd);
 }
 
-async function handleOpenConsole() {
-  await getConsoleTerminal();
-}
+// ++++++++ Register all commands +++++++++ //
 
-async function handlePasteToConsole() {
-  const texts = getSelectedTextOrLines();
-  if (!texts.length) {
-    vscode.window.showInformationMessage("Nothing to paste.");
-    return;
-  }
-
-  // send all selected text chunks to console
-  for (const text of texts) {
-    await writeToConsole(text);
-  }
-}
-
-// TODO: not working for variables import
-async function handleImportObject() {
-  const importStatement = await copyImportStatement();
-
-  if (!isValidImportStatement(importStatement)) return;
-
-  await writeToConsole(importStatement);
-}
-
-async function handleRunFunction() {
-  const importStatement = await copyImportStatement();
-
-  if (!isValidImportStatement(importStatement)) return;
-
-  const lines = [importStatement];
-
-  const name = extractObjName(importStatement, true);
-  if (name) lines.push(name);
-
-  await writeToConsole(...lines);
-}
-
-async function handleImportAll() {
-  const importStatement = await copyImportStatement();
-
-  if (!isValidImportStatement(importStatement)) return;
-
-  await writeToConsole(convertToImportAll(importStatement));
-}
-
+/**
+ * Register all command handlers.
+ * @param {vscode.ExtensionContext} context
+ */
 function registerCommands(context) {
   const commandHandlers = {
-    runFunction: handleRunFunction,
-    importAll: handleImportAll,
-    importObject: handleImportObject,
-    openConsole: handleOpenConsole,
-    pasteToConsole: handlePasteToConsole,
-    benchExecute: handleBenchExecute,
+    "open-bench-console": handleOpenConsole,
+    "paste-to-bench-console": handlePasteToConsole,
+    "import-in-bench-console": handleImportObject,
+    "import-all-in-bench-console": handleImportAll,
+    "run-func-in-bench-console": handleRunFunction,
+    "bench-execute-command": handleBenchExecute,
   };
 
-  for (const [key, handler] of Object.entries(commandHandlers)) {
+  for (const cmd in commandHandlers) {
     const disposable = vscode.commands.registerCommand(
-      getCommandId(key),
-      handler
+      `${ID}.${cmd}`,
+      commandHandlers[cmd]
     );
     context.subscriptions.push(disposable);
   }
 }
-
-/**
- * Build full VSCode command ID.
- * @param {string} key
- */
-const getCommandId = (key) => `${BASE}.${COMMANDS[key]}`;
 
 module.exports = { registerCommands };
