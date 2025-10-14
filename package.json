@@ -22,6 +22,10 @@
         "title": "Paste to Bench Console"
       },
       {
+        "command": "frappe-bench-tools.paste-clipboard-to-bench-console",
+        "title": "Paste Clipboard to Bench Console"
+      },
+      {
         "command": "frappe-bench-tools.import-in-bench-console",
         "title": "Import in Bench Console"
       },
@@ -40,38 +44,42 @@
     ],
     "submenus": [
       {
-        "id": "bench-terminal",
-        "label": "Bench Terminal"
+        "id": "frappe-bench",
+        "label": "Frappe Bench"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "submenu": "bench-terminal",
+          "submenu": "frappe-bench",
           "when": "editorLangId == python",
           "group": "6_copypath"
         }
       ],
-      "bench-terminal": [
+      "frappe-bench": [
         {
           "command": "frappe-bench-tools.open-bench-console",
-          "group": "bench@1"
+          "group": "bench1@1"
         },
         {
           "command": "frappe-bench-tools.paste-to-bench-console",
-          "group": "bench@2"
+          "group": "bench2@1"
+        },
+        {
+          "command": "frappe-bench-tools.paste-clipboard-to-bench-console",
+          "group": "bench2@2"
         },
         {
           "command": "frappe-bench-tools.import-in-bench-console",
-          "group": "bench@3"
+          "group": "bench3@1"
         },
         {
           "command": "frappe-bench-tools.import-all-in-bench-console",
-          "group": "bench@4"
+          "group": "bench3@2"
         },
         {
           "command": "frappe-bench-tools.run-func-in-bench-console",
-          "group": "bench@5"
+          "group": "bench4@1"
         },
         {
           "command": "frappe-bench-tools.bench-execute-command",

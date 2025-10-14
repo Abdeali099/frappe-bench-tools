@@ -31,7 +31,30 @@ async function handleOpenConsole() {
 /** Paste selected text or current lines to bench console terminal.
  */
 async function handlePasteToConsole() {
-  const texts = getSelectedTextOrLines();
+  let texts = getSelectedTextOrLines();
+
+  // get from clipboard if no selection or lines
+  if (!texts.length) {
+    const clipboardText = await vscode.env.clipboard.readText();
+    if (clipboardText) texts = clipboardText.split(/\r?\n/);
+  }
+
+  if (!texts.length) {
+    vscode.window.showInformationMessage("Nothing to paste.");
+    return;
+  }
+
+  await writeToConsole(...texts);
+}
+
+/** Paste clipboard text to bench console terminal.
+ */
+async function handlePasteClipboardToConsole() {
+  let texts = [];
+
+  const clipboardText = await vscode.env.clipboard.readText();
+  if (clipboardText) texts = clipboardText.split(/\r?\n/);
+
   if (!texts.length) {
     vscode.window.showInformationMessage("Nothing to paste.");
     return;
@@ -133,6 +156,7 @@ function registerCommands(context) {
   const commandHandlers = {
     "open-bench-console": handleOpenConsole,
     "paste-to-bench-console": handlePasteToConsole,
+    "paste-clipboard-to-bench-console": handlePasteClipboardToConsole,
     "import-in-bench-console": handleImportObject,
     "import-all-in-bench-console": handleImportAll,
     "run-func-in-bench-console": handleRunFunction,
