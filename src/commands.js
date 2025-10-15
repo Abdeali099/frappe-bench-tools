@@ -32,13 +32,7 @@ async function handleOpenConsole() {
 /** Paste selected text or current lines to bench console terminal.
  */
 async function handlePasteToConsole() {
-  let texts = getSelectedTextOrLines();
-
-  // get from clipboard if no selection or lines
-  if (!texts.length) {
-    const clipboardText = await vscode.env.clipboard.readText();
-    if (clipboardText) texts = clipboardText.split(/\r?\n/);
-  }
+  const texts = getSelectedTextOrLines();
 
   if (!texts.length) {
     vscode.window.showInformationMessage("Nothing to paste.");
