@@ -34,6 +34,10 @@
         "title": "Import All in Bench Console"
       },
       {
+        "command": "frappe-bench-tools.import-as-in-bench-console",
+        "title": "Import As in Bench Console"
+      },
+      {
         "command": "frappe-bench-tools.run-func-in-bench-console",
         "title": "Run Function in Bench Console"
       },
@@ -76,6 +80,10 @@
         {
           "command": "frappe-bench-tools.import-all-in-bench-console",
           "group": "bench3@2"
+        },
+        {
+          "command": "frappe-bench-tools.import-as-in-bench-console",
+          "group": "bench3@3"
         },
         {
           "command": "frappe-bench-tools.run-func-in-bench-console",

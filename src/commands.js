@@ -8,6 +8,7 @@ const {
   getExecuteCommand,
   convertToImportAll,
   isValidImportStatement,
+  convertToImportAs,
 } = require("./utils");
 const {
   writeToConsole,
@@ -85,6 +86,21 @@ async function handleImportAll() {
   await writeToConsole(convertToImportAll(importStatement));
 }
 
+async function handleImportAs() {
+  let importStatement = await copyImportStatement();
+
+  if (!isValidImportStatement(importStatement)) return;
+
+  const alias = await vscode.window.showInputBox({
+    prompt: "Enter alias for import",
+    placeHolder: "e.g. my_alias",
+  });
+
+  importStatement = convertToImportAs(importStatement, alias);
+
+  await writeToConsole(importStatement);
+}
+
 /** Run function in bench console terminal.
  * If no valid import statement is found, user is prompted to enter one.
  */
@@ -159,6 +175,7 @@ function registerCommands(context) {
     "paste-clipboard-to-bench-console": handlePasteClipboardToConsole,
     "import-in-bench-console": handleImportObject,
     "import-all-in-bench-console": handleImportAll,
+    "import-as-in-bench-console": handleImportAs,
     "run-func-in-bench-console": handleRunFunction,
     "bench-execute-command": handleBenchExecute,
   };

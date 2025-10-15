@@ -11,6 +11,7 @@ const KEY_WORDS = {
   IMPORT: "import",
   FROM: "from",
   ALL: "*",
+  AS: "as",
 };
 
 /**
@@ -199,6 +200,27 @@ function convertToImportAll(importStatement) {
   return importStatement;
 }
 
+/** Convert import statement to import as (using alias).
+ * Example: `from module.path import my_function` + `mf` => `from module.path import my_function as mf`
+ * @param {string} importStatement
+ * @param {string} alias
+ * @returns {string|null} modified import statement or null if not applicable
+ */
+function convertToImportAs(importStatement, alias) {
+  if (!importStatement?.startsWith(`${KEY_WORDS.FROM} `)) {
+    return null;
+  }
+
+  if (!alias || alias.trim().length === 0) {
+    return importStatement;
+  }
+
+  alias = alias.split(/\s+/)[0]; // first word only
+
+  //  add `as alias` to import statement
+  return `${importStatement} ${KEY_WORDS.AS} ${alias}`;
+}
+
 /** Check if import statement is valid (starts with "from ").
  * @param {string} importStatement
  * @param {boolean} notify - whether to notify user if invalid
@@ -229,6 +251,7 @@ module.exports = {
   isValidImportStatement,
   extractObjName,
   convertToImportAll,
+  convertToImportAs,
   getSelectedTextOrLines,
   copyPythonPath,
   getBenchToolConfig,
