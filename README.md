@@ -25,26 +25,26 @@
 
 Open or switch to a Frappe Bench console terminal directly from VS Code.
 
-![Open Console Demo](./assets/videos/open-console.mp4)
+https://github.com/user-attachments/assets/0031cf18-6895-499f-81d2-7893ce83bec5
 
 ### 📋 Paste to Bench Console
 
 - Paste selected code directly into the Bench console.  
 - If no selection, paste the current line where the cursor is located.
 
-![Paste Demo](./assets/videos/paste-demo.mp4)
+https://github.com/user-attachments/assets/06092722-e9d5-40cc-9ab4-cd3407ac530e
 
 ### 📄 Paste Clipboard to Bench Console
 
 Paste content directly from the clipboard to the Bench console.
 
-![Paste Clipboard Demo](./assets/videos/paste-clipboard-demo.mp4)
+https://github.com/user-attachments/assets/313fe096-7834-434b-87ba-b0eede75f1ad
 
 ### 📦 Import in Bench Console
 
 Import functions, classes, or variables by placing the cursor on them.
 
-![Import Demo](./assets/videos/import-demo.mp4)
+https://github.com/user-attachments/assets/8b46788b-0ce8-4b54-b6b7-0858e52804a5
 
 ### 🌐 Import All in Bench Console
 
@@ -54,19 +54,19 @@ Import all exports from a module using:
 from module import *
 ```
 
-![Import All Demo](./assets/videos/import-all-demo.mp4)
+https://github.com/user-attachments/assets/07a5b9a7-030a-4857-9123-c72d0be470ae
 
 ### 🏷️ Import As in Bench Console
 
 Import with a custom alias — prompted for an alias name.
 
-![Import As Demo](./assets/videos/import-as-demo.mp4)
+https://github.com/user-attachments/assets/2c9f2d59-7e8b-465f-bf2a-ac93bb69292c
 
 ### ⚡ Run Function in Bench Console
 
 Automatically import and execute a function by placing the cursor on its definition.
 
-![Execute Demo](./assets/videos/run-function-demo.mp4)
+https://github.com/user-attachments/assets/517d9c87-4ba7-444c-b204-3adaf6b52809
 
 ### 🧩 Bench Execute Python Function
 
@@ -79,7 +79,7 @@ bench --site <site> execute <path.to.function>
 - Optionally provide `args` and `kwargs` interactively.
 - Perfect for testing patches.
 
-![Bench Execute Demo](./assets/videos/bench-execute-demo.mp4)
+https://github.com/user-attachments/assets/ebd68e61-408c-4c70-8b40-2df107442d87
 
 ### 🖱️ Context Menu Integration
 
