@@ -1,4 +1,9 @@
-# Frappe Bench Tools
+<section align="center">
+  <img src="./assets/images/icon.png">
+    <h2>Frappe Bench Tools</h2>
+</section>
+
+---
 
 - Use Frappe Bench commands directly from VS Code to enhance your Frappe development workflow.  
 
