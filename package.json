@@ -2,15 +2,37 @@
   "name": "frappe-bench-tools",
   "publisher": "abdeali",
   "displayName": "Frappe Bench Tools",
-  "description": "Interact with different frappe bench commands",
+  "description": "Run Frappe Bench commands directly from VS Code — open console, import modules, and execute functions with ease.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.103.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Snippets",
+    "Programming Languages"
+  ],
+  "icon": "/assets/images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Abdeali099/frappe-bench-tools"
+  },
+  "homepage": "https://github.com/Abdeali099/frappe-bench-tools",
+  "bugs": {
+    "url": "https://github.com/Abdeali099/frappe-bench-tools/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "frappe",
+    "erpnext",
+    "bench",
+    "console",
+    "developer-tools",
+    "python",
+    "automation"
   ],
   "main": "./src/extension.js",
+  "activationEvents": ["onLanguage:python"],
   "contributes": {
     "commands": [
       {
@@ -143,9 +165,6 @@
       }
     ]
   },
-  "activationEvents": [
-    "onLanguage:python"
-  ],
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
