@@ -23,24 +23,28 @@
 
 ### 🧭 Open Bench Console
 
-Open or switch to a Frappe Bench console terminal directly from VS Code.  
-<!-- ![Open Console Demo](images/open-console.gif) -->
+Open or switch to a Frappe Bench console terminal directly from VS Code.
+
+![Open Console Demo](./assets/videos/open-console.mp4)
 
 ### 📋 Paste to Bench Console
 
 - Paste selected code directly into the Bench console.  
-- If no selection, paste the current line where the cursor is located.  
-<!-- ![Paste Demo](images/paste-demo.gif) -->
+- If no selection, paste the current line where the cursor is located.
+
+![Paste Demo](./assets/videos/paste-demo.mp4)
 
 ### 📄 Paste Clipboard to Bench Console
 
-Paste content directly from the clipboard to the Bench console.  
-<!-- ![Paste Clipboard Demo](images/paste-clipboard-demo.gif) -->
+Paste content directly from the clipboard to the Bench console.
+
+![Paste Clipboard Demo](./assets/videos/paste-clipboard-demo.mp4)
 
 ### 📦 Import in Bench Console
 
-Import functions, classes, or variables by placing the cursor on them.  
-<!-- ![Import Demo](images/import-demo.gif) -->
+Import functions, classes, or variables by placing the cursor on them.
+
+![Import Demo](./assets/videos/import-demo.mp4)
 
 ### 🌐 Import All in Bench Console
 
@@ -50,19 +54,19 @@ Import all exports from a module using:
 from module import *
 ```
 
-<!-- ![Import All Demo](images/import-all-demo.gif) -->
+![Import All Demo](./assets/videos/import-all-demo.mp4)
 
 ### 🏷️ Import As in Bench Console
 
 Import with a custom alias — prompted for an alias name.
 
-<!-- ![Import As Demo](images/import-as-demo.gif) -->
+![Import As Demo](./assets/videos/import-as-demo.mp4)
 
 ### ⚡ Run Function in Bench Console
 
 Automatically import and execute a function by placing the cursor on its definition.
 
-<!-- ![Execute Demo](images/execute-demo.gif) -->
+![Execute Demo](./assets/videos/run-function-demo.mp4)
 
 ### 🧩 Bench Execute Python Function
 
@@ -75,13 +79,13 @@ bench --site <site> execute <path.to.function>
 - Optionally provide `args` and `kwargs` interactively.
 - Perfect for testing patches.
 
-<!-- ![Bench Execute Demo](images/bench-execute-demo.gif) -->
+![Bench Execute Demo](./assets/videos/bench-execute-demo.mp4)
 
 ### 🖱️ Context Menu Integration
 
 Access all features through a dedicated **“Frappe Bench”** submenu in the right-click context menu.
 
-<!-- ![Context Menu](images/context-menu.png) -->
+![Context Menu](./assets/images/context-menu.png)
 
 ## Prerequisites
 
@@ -188,6 +192,8 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
   "frappeBenchTools.acceptKwargsForExecute": true
 }
 ```
+
+![Configs](./assets/images/configs.png)
 
 ## Commands
 
