@@ -1,9 +1,7 @@
-<section align="center">
+<div align="center">
   <img src="./assets/images/icon.png">
     <h2>Frappe Bench Tools</h2>
-</section>
-
----
+</div>
 
 - Use Frappe Bench commands directly from VS Code to enhance your Frappe development workflow.  
 
