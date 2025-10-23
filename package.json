@@ -3,7 +3,7 @@
   "publisher": "abdeali",
   "displayName": "Frappe Bench Tools",
   "description": "Run Frappe Bench commands directly from VS Code — open console, import modules, and execute functions with ease.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.103.0"
   },
