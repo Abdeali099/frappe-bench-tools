@@ -106,7 +106,7 @@ Before using the extension, make sure you have the following:
 ### From VS Code Marketplace
 
 1. Open VS Code.
-2. Go to **Extensions** (`Ctrl+Shift+X` or `Cmd+Shift+X`).
+2. Go to **Extensions** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> or <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>).
 3. Search for **"Frappe Bench Tools"**.
 4. Click **Install**.
 
@@ -118,7 +118,7 @@ code --install-extension abdeali.frappe-bench-tools
 
 ## Configuration
 
-Configure the extension from VS Code settings (`Ctrl+,` or `Cmd+,`).
+Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <kbd>Cmd</kbd>+<kbd>,</kbd>).
 
 ### 🧱 General Settings
 
@@ -191,7 +191,7 @@ Configure the extension from VS Code settings (`Ctrl+,` or `Cmd+,`).
 
 ## Commands
 
-All commands are available from the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+All commands are available from the **Command Palette** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>):
 
 | Command                            | Description                                    |
 |------------------------------------|------------------------------------------------|
