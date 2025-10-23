@@ -1,65 +1,234 @@
-# frappe-bench-tools README
+# Frappe Bench Tools
 
-This is the README for your extension "frappe-bench-tools". After writing up a brief description, we recommend including the following sections.
+- Use Frappe Bench commands directly from VS Code to enhance your Frappe development workflow.  
+
+- This extension provides quick access to the Frappe Bench console, imports, and execution utilities.
+
+## 📑 Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### 🧭 Open Bench Console
 
-For example if there is an image subfolder under your extension project workspace:
+Open or switch to a Frappe Bench console terminal directly from VS Code.  
+<!-- ![Open Console Demo](images/open-console.gif) -->
 
-\!\[feature X\]\(images/feature-x.png\)
+### 📋 Paste to Bench Console
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Paste selected code directly into the Bench console.  
+- If no selection, paste the current line where the cursor is located.  
+<!-- ![Paste Demo](images/paste-demo.gif) -->
 
-## Requirements
+### 📄 Paste Clipboard to Bench Console
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Paste content directly from the clipboard to the Bench console.  
+<!-- ![Paste Clipboard Demo](images/paste-clipboard-demo.gif) -->
 
-## Extension Settings
+### 📦 Import in Bench Console
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Import functions, classes, or variables by placing the cursor on them.  
+<!-- ![Import Demo](images/import-demo.gif) -->
 
-For example:
+### 🌐 Import All in Bench Console
 
-This extension contributes the following settings:
+Import all exports from a module using:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+```py
+from module import *
+```
 
-## Known Issues
+<!-- ![Import All Demo](images/import-all-demo.gif) -->
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+### 🏷️ Import As in Bench Console
 
-## Release Notes
+Import with a custom alias — prompted for an alias name.
 
-Users appreciate release notes as you update your extension.
+<!-- ![Import As Demo](images/import-as-demo.gif) -->
 
-### 1.0.0
+### ⚡ Run Function in Bench Console
 
-Initial release of ...
+Automatically import and execute a function by placing the cursor on its definition.
 
-### 1.0.1
+<!-- ![Execute Demo](images/execute-demo.gif) -->
 
-Fixed issue #.
+### 🧩 Bench Execute Python Function
 
-### 1.1.0
+Execute a Python function using:
 
-Added features X, Y, and Z.
+```bash
+bench --site <site> execute <path.to.function>
+```
 
----
+- Optionally provide `args` and `kwargs` interactively.
+- Perfect for testing patches.
 
-## Working with Markdown
+<!-- ![Bench Execute Demo](images/bench-execute-demo.gif) -->
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+### 🖱️ Context Menu Integration
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+Access all features through a dedicated **“Frappe Bench”** submenu in the right-click context menu.
 
-## For more information
+<!-- ![Context Menu](images/context-menu.png) -->
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Prerequisites
 
-**Enjoy!**
+Before using the extension, make sure you have the following:
+
+### Required
+
+1. **VS Code Extension** – [Copy Python Path](https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path)
+   Used to generate Python import statements automatically.
+
+2. **Frappe Bench Environment**
+
+   - You must have a working Frappe Bench setup.
+   - The `bench` command should be available in your system PATH.
+
+3. **Single App Workspace**
+
+   - Open your Frappe app as a **single workspace** in VS Code for correct module path resolution.
+
+## Installation
+
+### From VS Code Marketplace
+
+1. Open VS Code.
+2. Go to **Extensions** (`Ctrl+Shift+X` or `Cmd+Shift+X`).
+3. Search for **"Frappe Bench Tools"**.
+4. Click **Install**.
+
+### From Command Line
+
+```bash
+code --install-extension abdeali.frappe-bench-tools
+```
+
+## Configuration
+
+Configure the extension from VS Code settings (`Ctrl+,` or `Cmd+,`).
+
+### 🧱 General Settings
+
+#### `frappeBenchTools.siteName`
+
+- **Type**: `string`
+- **Default**: `"frappe.localhost"`
+- **Description**: Site name for running Bench commands.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.siteName": "my-site.localhost"
+}
+```
+
+### 💻 Console Settings
+
+#### `frappeBenchTools.consoleTerminalName`
+
+- **Type**: `string`
+- **Default**: `"Bench Console"`
+- **Description**: Terminal name for console operations.
+
+#### `frappeBenchTools.autoReload`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Use `--autoreload` to auto-reload the console on file changes.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.consoleTerminalName": "My Frappe Console",
+  "frappeBenchTools.autoReload": true
+}
+```
+
+### ⚙️ Execute Settings
+
+#### `frappeBenchTools.executeTerminalName`
+
+- **Type**: `string`
+- **Default**: `"Bench Execute"`
+- **Description**: Terminal name for bench execute operations.
+
+#### `frappeBenchTools.acceptArgsForExecute`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Prompt for list arguments, e.g., `["arg1", "arg2"]`.
+
+#### `frappeBenchTools.acceptKwargsForExecute`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Prompt for dictionary kwargs, e.g., `{"key": "value"}`.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.executeTerminalName": "Frappe Executor",
+  "frappeBenchTools.acceptArgsForExecute": true,
+  "frappeBenchTools.acceptKwargsForExecute": true
+}
+```
+
+## Commands
+
+All commands are available from the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+
+| Command                            | Description                                    |
+|------------------------------------|------------------------------------------------|
+| `Open Bench Console`               | Open or switch to the bench console terminal   |
+| `Paste to Bench Console`           | Paste selected text or current line to console |
+| `Paste Clipboard to Bench Console` | Paste clipboard content to console             |
+| `Import in Bench Console`          | Generate and execute import statement          |
+| `Import All in Bench Console`      | Import all exports from module                 |
+| `Import As in Bench Console`       | Import with custom alias                       |
+| `Run Function in Bench Console`    | Import and execute function                    |
+| `Bench Execute Python Function`    | Execute function using bench execute command   |
+
+## Troubleshooting
+
+### ⚠️ “Copy Python Path extension is not installed”
+
+Install the dependency: [Copy Python Path](https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path)
+
+### 💥 Terminal not responding
+
+Close the terminal and re-run the command — a new terminal will be created automatically.
+
+### 🧩 Import statements not working
+
+Ensure your Python files are inside a valid Frappe app structure with correct module paths.
+
+### 🎯 Import not detecting object
+
+Place the cursor exactly on the **function, class, or variable** name before running the import or run commands.
+
+## Contributing
+
+Contributions are welcome!
+Feel free to submit a **Pull Request** or open an **Issue** on GitHub.
+
+## License
+
+Licensed under the [MIT License](LICENSE).
+
+## Support
+
+For issues, suggestions, or feature requests —
+visit the [GitHub repository](https://github.com/Abdeali099/frappe-bench-tools).
