@@ -171,7 +171,8 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test",
-    "release": "standard-version && git push --follow-tags && vsce publish"
+    "release": "standard-version && git push --follow-tags && vsce publish",
+    "package": "npx vsce package"
   },
   "devDependencies": {
     "@types/estree": "^1.0.8",
@@ -182,6 +183,7 @@
     "@types/vscode": "^1.103.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.6.2",
     "eslint": "^9.13.0",
     "standard-version": "^9.5.0"
   }
