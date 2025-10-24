@@ -233,10 +233,6 @@ Place the cursor exactly on the **function, class, or variable** name before run
 Contributions are welcome!
 Feel free to submit a **Pull Request** or open an **Issue** on GitHub.
 
-## License
-
-Licensed under the [MIT License](LICENSE).
-
 ## Support
 
 For issues, suggestions, or feature requests —
