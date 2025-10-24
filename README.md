@@ -25,26 +25,26 @@
 
 Open or switch to a Frappe Bench console terminal directly from VS Code.
 
-https://github.com/user-attachments/assets/0031cf18-6895-499f-81d2-7893ce83bec5
+![Open Console Demo](./assets/gifs/open-console.gif)
 
 ### 📋 Paste to Bench Console
 
 - Paste selected code directly into the Bench console.  
 - If no selection, paste the current line where the cursor is located.
 
-https://github.com/user-attachments/assets/06092722-e9d5-40cc-9ab4-cd3407ac530e
+![Paste Demo](./assets/gifs/paste-demo.gif)
 
 ### 📄 Paste Clipboard to Bench Console
 
 Paste content directly from the clipboard to the Bench console.
 
-https://github.com/user-attachments/assets/313fe096-7834-434b-87ba-b0eede75f1ad
+![Paste Clipboard Demo](./assets/gifs/paste-clipboard-demo.gif)
 
 ### 📦 Import in Bench Console
 
 Import functions, classes, or variables by placing the cursor on them.
 
-https://github.com/user-attachments/assets/8b46788b-0ce8-4b54-b6b7-0858e52804a5
+![Import Demo](./assets/gifs/import-demo.gif)
 
 ### 🌐 Import All in Bench Console
 
@@ -54,19 +54,19 @@ Import all exports from a module using:
 from module import *
 ```
 
-https://github.com/user-attachments/assets/07a5b9a7-030a-4857-9123-c72d0be470ae
+![Import All Demo](./assets/gifs/import-all-demo.gif)
 
 ### 🏷️ Import As in Bench Console
 
 Import with a custom alias — prompted for an alias name.
 
-https://github.com/user-attachments/assets/2c9f2d59-7e8b-465f-bf2a-ac93bb69292c
+![Import As Demo](./assets/gifs/import-as-demo.gif)
 
 ### ⚡ Run Function in Bench Console
 
 Automatically import and execute a function by placing the cursor on its definition.
 
-https://github.com/user-attachments/assets/517d9c87-4ba7-444c-b204-3adaf6b52809
+![Execute Demo](./assets/gifs/run-function-demo.gif)
 
 ### 🧩 Bench Execute Python Function
 
@@ -79,7 +79,7 @@ bench --site <site> execute <path.to.function>
 - Optionally provide `args` and `kwargs` interactively.
 - Perfect for testing patches.
 
-https://github.com/user-attachments/assets/ebd68e61-408c-4c70-8b40-2df107442d87
+![Bench Execute Demo](./assets/gifs/bench-execute-demo.gif)
 
 ### 🖱️ Context Menu Integration
 
