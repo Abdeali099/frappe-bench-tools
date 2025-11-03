@@ -171,7 +171,7 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test",
-    "release": "standard-version && git push --follow-tags && vsce publish",
+    "release": "nvm use 20 && standard-version && git push --follow-tags && vsce publish",
     "package": "npx vsce package"
   },
   "devDependencies": {
