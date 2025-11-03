@@ -39,7 +39,7 @@ async function handlePasteToConsole() {
     return;
   }
 
-  await writeToConsole(...texts);
+  await writeToConsole(texts, false);
 }
 
 /** Paste clipboard text to bench console terminal.
@@ -55,7 +55,7 @@ async function handlePasteClipboardToConsole() {
     return;
   }
 
-  await writeToConsole(...texts);
+  await writeToConsole(texts, false);
 }
 
 /** Import object in bench console terminal.
@@ -66,7 +66,7 @@ async function handleImportObject() {
 
   if (!isValidImportStatement(importStatement)) return;
 
-  await writeToConsole(importStatement);
+  await writeToConsole([importStatement]);
 }
 
 /** Import all (*) in bench console terminal.
@@ -77,7 +77,7 @@ async function handleImportAll() {
 
   if (!isValidImportStatement(importStatement)) return;
 
-  await writeToConsole(convertToImportAll(importStatement));
+  await writeToConsole([convertToImportAll(importStatement)]);
 }
 
 async function handleImportAs() {
@@ -92,7 +92,7 @@ async function handleImportAs() {
 
   importStatement = convertToImportAs(importStatement, alias);
 
-  await writeToConsole(importStatement);
+  await writeToConsole([importStatement]);
 }
 
 /** Run function in bench console terminal.
@@ -108,7 +108,7 @@ async function handleRunFunction() {
   const name = extractObjName(importStatement, true);
   if (name) lines.push(name);
 
-  await writeToConsole(...lines);
+  await writeToConsole(lines);
 }
 
 /** Execute command in bench execute terminal.

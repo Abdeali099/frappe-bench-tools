@@ -2,6 +2,8 @@ const vscode = require("vscode");
 const { getBenchToolConfig, getConsoleCommand } = require("./utils");
 
 const DELAY = 1500;
+const BRACKET_START = "\x1b[200~";
+const BRACKET_END = "\x1b[201~";
 
 /**
  * Sleep utility
@@ -61,9 +63,10 @@ async function getExecuteTerminal() {
 
 /**
  * Send text to bench console terminal.
- * @param {...string} lines
+ * @param {string[]} lines
+ * @param {boolean} shouldExecute - whether to execute the commands immediately
  */
-async function writeToConsole(...lines) {
+async function writeToConsole(lines, shouldExecute = true) {
   if (!lines || lines.length === 0) {
     vscode.window.showWarningMessage("No lines to write to console.");
     return;
@@ -72,7 +75,9 @@ async function writeToConsole(...lines) {
   const terminal = await getConsoleTerminal();
   if (!terminal) return;
 
-  lines.forEach((line) => terminal.sendText(line));
+  lines.forEach((line) =>
+    terminal.sendText(`${BRACKET_START}${line}${BRACKET_END}`, shouldExecute)
+  );
 }
 
 /**
