@@ -114,6 +114,8 @@ Before using the extension, make sure you have the following:
 3. Search for **"Frappe Bench Tools"**.
 4. Click **Install**.
 
+- Visual Studio Marketplace: [Frappe Bench Tools](https://marketplace.visualstudio.com/items?itemName=abdeali.frappe-bench-tools)
+
 ### From Command Line
 
 ```bash
