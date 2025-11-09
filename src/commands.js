@@ -1,5 +1,6 @@
 const vscode = require("vscode");
-const benchConsole = require("./commands/benchConsole");
+const consoleCommand = require("./commands/benchConsole");
+const generalCommand = require("./commands/general");
 
 // ++++++++ Constants +++++++++ //
 
@@ -14,14 +15,17 @@ const ID = "frappe-bench-tools";
  */
 function registerCommands(context) {
   const commandHandlers = {
-    "open-bench-console": benchConsole.openConsole,
-    "paste-to-bench-console": benchConsole.pasteSelectionToConsole,
-    "paste-clipboard-to-bench-console": benchConsole.pasteClipboardToConsole,
-    "import-in-bench-console": benchConsole.importObject,
-    "import-all-in-bench-console": benchConsole.importAll,
-    "import-as-in-bench-console": benchConsole.importAs,
-    "run-func-in-bench-console": benchConsole.runFunction,
-    "bench-execute-command": benchConsole.benchExecute,
+    // bench console commands
+    "open-bench-console": consoleCommand.openConsole,
+    "paste-to-bench-console": consoleCommand.pasteSelectionToConsole,
+    "paste-clipboard-to-bench-console": consoleCommand.pasteClipboardToConsole,
+    "import-in-bench-console": consoleCommand.importObject,
+    "import-all-in-bench-console": consoleCommand.importAll,
+    "import-as-in-bench-console": consoleCommand.importAs,
+    "run-func-in-bench-console": consoleCommand.runFunction,
+    "bench-execute-command": consoleCommand.benchExecute,
+    // general commands
+    "show-bench-version": generalCommand.showBenchVersion,
   };
 
   for (const cmd in commandHandlers) {

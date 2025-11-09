@@ -82,9 +82,10 @@ async function writeToConsole(lines, shouldExecute = true) {
 
 /**
  * Send text to bench execute terminal.
- * @param {...string} lines
+ * @param {string[]} lines
+ * @param {boolean} shouldExecute - whether to execute the commands immediately
  */
-async function writeToExecuteTerminal(...lines) {
+async function writeToExecuteTerminal(lines, shouldExecute = true) {
   if (!lines || lines.length === 0) {
     vscode.window.showWarningMessage("No command to execute in terminal.");
     return;
@@ -92,12 +93,39 @@ async function writeToExecuteTerminal(...lines) {
 
   const terminal = await getExecuteTerminal();
   if (!terminal) return;
-  lines.forEach((line) => terminal.sendText(line));
+  lines.forEach((line) => terminal.sendText(line, shouldExecute));
+}
+
+/**
+ * Get bench command terminal (plain shell, no startup command).
+ */
+async function getCommandTerminal() {
+  const { commandTerminalName } = getBenchToolConfig();
+  return getOrCreateTerminal(commandTerminalName);
+}
+
+/**
+ * Send text to command terminal.
+ * @param {string[]} lines
+ * @param {boolean} shouldExecute - whether to execute the commands immediately
+ */
+async function writeToCommandTerminal(lines, shouldExecute = true) {
+  if (!lines || lines.length === 0) {
+    vscode.window.showWarningMessage("No command to execute in terminal.");
+    return;
+  }
+
+  const terminal = await getCommandTerminal();
+  if (!terminal) return;
+
+  lines.forEach((line) => terminal.sendText(line, shouldExecute));
 }
 
 module.exports = {
-  writeToConsole,
-  writeToExecuteTerminal,
   getConsoleTerminal,
   getExecuteTerminal,
+  getCommandTerminal,
+  writeToConsole,
+  writeToExecuteTerminal,
+  writeToCommandTerminal,
 };

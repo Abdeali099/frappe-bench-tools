@@ -133,7 +133,7 @@ async function benchExecute() {
   const cmd = utils.getExecuteCommand(pythonPath, args, kwargs);
 
   // Use a dedicated terminal for bench execute
-  await terminal.writeToExecuteTerminal(cmd);
+  await terminal.writeToExecuteTerminal([cmd]);
 }
 
 module.exports = {
