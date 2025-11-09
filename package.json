@@ -69,6 +69,10 @@
       {
         "command": "frappe-bench-tools.bench-execute-command",
         "title": "Frappe Bench: Execute Python Function"
+      },
+      {
+        "command": "frappe-bench-tools.show-bench-version",
+        "title": "Frappe Bench: Show Bench Version"
       }
     ],
     "submenus": [
@@ -163,6 +167,16 @@
             "type": "boolean",
             "default": true,
             "description": "Whether to accept keyword arguments for the execute command."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Commands",
+        "properties": {
+          "frappeBenchTools.commandTerminalName": {
+            "type": "string",
+            "default": "Bench Commands",
+            "description": "The name of the bench command terminal."
           }
         }
       }
