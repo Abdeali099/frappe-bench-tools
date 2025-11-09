@@ -17,9 +17,10 @@ function sleep(ms) {
  * Get or create a terminal by name, with optional startup command.
  * @param {string} name - terminal name
  * @param {string|null} startupCommand - command to run after creation
+ * @param {boolean} delay - whether to wait for shell initialization
  * @returns {Promise<vscode.Terminal>}
  */
-async function getOrCreateTerminal(name, startupCommand = null) {
+async function getOrCreateTerminal(name, startupCommand = null, delay = true) {
   try {
     let terminal = vscode.window.terminals.find((t) => t.name === name);
 
@@ -28,7 +29,7 @@ async function getOrCreateTerminal(name, startupCommand = null) {
       terminal.show();
 
       // wait for shell init (like auto `source ...`)
-      await sleep(DELAY);
+      if (delay) await sleep(DELAY);
 
       if (startupCommand) {
         terminal.sendText(startupCommand);
@@ -101,7 +102,7 @@ async function writeToExecuteTerminal(lines, shouldExecute = true) {
  */
 async function getCommandTerminal() {
   const { commandTerminalName } = getBenchToolConfig();
-  return getOrCreateTerminal(commandTerminalName);
+  return getOrCreateTerminal(commandTerminalName, null, false);
 }
 
 /**
