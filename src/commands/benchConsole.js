@@ -4,13 +4,13 @@ const terminal = require("../terminal");
 
 /** Open bench console terminal.
  */
-async function handleOpenConsole() {
+async function openConsole() {
   await terminal.getConsoleTerminal();
 }
 
 /** Paste selected text or current lines to bench console terminal.
  */
-async function handlePasteToConsole() {
+async function pasteSelectionToConsole() {
   const texts = utils.getSelectedTextOrLines();
 
   if (!texts.length) {
@@ -23,7 +23,7 @@ async function handlePasteToConsole() {
 
 /** Paste clipboard text to bench console terminal.
  */
-async function handlePasteClipboardToConsole() {
+async function pasteClipboardToConsole() {
   let texts = [];
 
   const clipboardText = await vscode.env.clipboard.readText();
@@ -40,7 +40,7 @@ async function handlePasteClipboardToConsole() {
 /** Import object in bench console terminal.
  * If no valid import statement is found, user is prompted to enter one.
  */
-async function handleImportObject() {
+async function importObject() {
   const importStatement = await utils.copyImportStatement();
 
   if (!utils.isValidImportStatement(importStatement)) return;
@@ -50,7 +50,7 @@ async function handleImportObject() {
 
 /** Import all (*) in bench console terminal.
  */
-async function handleImportAll() {
+async function importAll() {
   // user input not required here
   const importStatement = await utils.copyImportStatement(false);
 
@@ -59,7 +59,7 @@ async function handleImportAll() {
   await terminal.writeToConsole([utils.convertToImportAll(importStatement)]);
 }
 
-async function handleImportAs() {
+async function importAs() {
   let importStatement = await utils.copyImportStatement();
 
   if (!utils.isValidImportStatement(importStatement)) return;
@@ -77,7 +77,7 @@ async function handleImportAs() {
 /** Run function in bench console terminal.
  * If no valid import statement is found, user is prompted to enter one.
  */
-async function handleRunFunction() {
+async function runFunction() {
   const importStatement = await utils.copyImportStatement();
 
   if (!utils.isValidImportStatement(importStatement)) return;
@@ -93,7 +93,7 @@ async function handleRunFunction() {
 /** Execute command in bench execute terminal.
  * Prompts for args and kwargs if enabled in settings.
  */
-async function handleBenchExecute() {
+async function benchExecute() {
   // Try to get python path from selection or clipboard
   let pythonPath = await utils.copyPythonPath();
 
@@ -137,12 +137,12 @@ async function handleBenchExecute() {
 }
 
 module.exports = {
-  handleOpenConsole,
-  handlePasteToConsole,
-  handlePasteClipboardToConsole,
-  handleImportObject,
-  handleImportAll,
-  handleImportAs,
-  handleRunFunction,
-  handleBenchExecute,
+  openConsole,
+  pasteSelectionToConsole,
+  pasteClipboardToConsole,
+  importObject,
+  importAll,
+  importAs,
+  runFunction,
+  benchExecute,
 };
