@@ -1,6 +1,7 @@
 const vscode = require("vscode");
 const consoleCommand = require("./commands/benchConsole");
 const generalCommand = require("./commands/general");
+const devCommand = require("./commands/dev");
 
 // ++++++++ Constants +++++++++ //
 
@@ -26,6 +27,16 @@ function registerCommands(context) {
     "bench-execute-command": consoleCommand.benchExecute,
     // general commands
     "show-bench-version": generalCommand.showBenchVersion,
+    "show-all-apps-version": generalCommand.showAllAppsVersion,
+    "show-bench-source": generalCommand.showBenchSource,
+    // dev commands
+    "bench-start": devCommand.start,
+    "bench-restart": devCommand.restart,
+    "bench-migrate": devCommand.migrate,
+    "bench-update": devCommand.update,
+    "browse-site": devCommand.browse,
+    "browse-site-as-admin": devCommand.browseAsAdmin,
+    "upgrade-bench-cli": devCommand.upgradeBenchCLI,
   };
 
   for (const cmd in commandHandlers) {

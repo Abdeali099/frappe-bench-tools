@@ -6,6 +6,7 @@ const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
+const COMMAND_TERMINAL_NAME = "Bench Commands";
 
 const KEY_WORDS = {
   IMPORT: "import",
@@ -30,6 +31,8 @@ function getBenchToolConfig() {
       config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
     acceptArgsForExecute: config.get("acceptArgsForExecute"),
     acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+    commandTerminalName:
+      config.get("commandTerminalName") || COMMAND_TERMINAL_NAME,
   };
 }
 
@@ -39,21 +42,21 @@ function getBenchToolConfig() {
  */
 function getConsoleCommand() {
   const config = getBenchToolConfig();
-  const parts = ["bench"];
+  const command = ["bench"];
 
   // add site if specified
   if (config.siteName) {
-    parts.push("--site", config.siteName);
+    command.push("--site", config.siteName);
   }
 
-  parts.push("console");
+  command.push("console");
 
   // add autoreload if enabled
   if (config.autoReload) {
-    parts.push("--autoreload");
+    command.push("--autoreload");
   }
 
-  return parts.join(" ");
+  return command.join(" ");
 }
 
 /**
@@ -65,25 +68,25 @@ function getConsoleCommand() {
  */
 function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   const config = getBenchToolConfig();
-  const parts = ["bench"];
+  const command = ["bench"];
 
   // add site if specified
   if (config.siteName) {
-    parts.push("--site", config.siteName);
+    command.push("--site", config.siteName);
   }
 
-  parts.push("execute");
-  parts.push(pythonPath);
+  command.push("execute");
+  command.push(pythonPath);
 
   if (args && config.acceptArgsForExecute) {
-    parts.push("--args", `'${args}'`);
+    command.push("--args", `'${args}'`);
   }
 
   if (kwargs && config.acceptKwargsForExecute) {
-    parts.push("--kwargs", `'${kwargs}'`);
+    command.push("--kwargs", `'${kwargs}'`);
   }
 
-  return parts.join(" ");
+  return command.join(" ");
 }
 
 /**
