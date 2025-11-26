@@ -36,6 +36,7 @@ function registerCommands(context) {
     "bench-update": devCommand.update,
     "browse-site": devCommand.browse,
     "browse-site-as-admin": devCommand.browseAsAdmin,
+    "use-site": devCommand.use,
     "upgrade-bench-cli": devCommand.upgradeBenchCLI,
   };
 

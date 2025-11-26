@@ -137,11 +137,52 @@ async function upgradeBenchCLI() {
   await terminal.writeToCommandTerminal(command);
 }
 
+/** Bench Use <site-name>
+ * Fetches all available sites and lets user select one to set as default.
+ */
+async function use() {
+  // Get list of all sites
+  const sites = await utils.getAllSites();
+
+  if (!sites || sites.length === 0) {
+    vscode.window.showInformationMessage("No sites found in this bench.");
+    return;
+  }
+
+  // Get current default site from config
+  const config = utils.getBenchToolConfig();
+  const currentSite = config.siteName;
+
+  // Prepare site list with current site marked
+  const siteItems = sites.map((site) => ({
+    label: site,
+    description: site === currentSite ? "(current default)" : "",
+    site: site,
+  }));
+
+  // Let user select a site
+  const selectedSite = await vscode.window.showQuickPick(siteItems, {
+    placeHolder: "Select a site to set as default",
+    title: "Bench Use - Set Default Site",
+  });
+
+  if (!selectedSite) {
+    return; // User cancelled
+  }
+
+  const command = [`bench use ${selectedSite.site}`];
+  await terminal.writeToCommandTerminal(command);
+
+  // Update config with new default site
+  await utils.updateBenchToolConfig("siteName", selectedSite.site);
+}
+
 module.exports = {
   start,
   restart,
   migrate,
   update,
+  use,
   browse,
   browseAsAdmin,
   upgradeBenchCLI,

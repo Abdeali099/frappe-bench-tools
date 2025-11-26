@@ -107,6 +107,10 @@
         "title": "Frappe Bench: Browse Site as Administrator"
       },
       {
+        "command": "frappe-bench-tools.use-site",
+        "title": "Frappe Bench: Use Site"
+      },
+      {
         "command": "frappe-bench-tools.upgrade-bench-cli",
         "title": "Frappe Bench: Upgrade Bench CLI"
       }

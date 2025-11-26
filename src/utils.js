@@ -37,6 +37,18 @@ function getBenchToolConfig() {
 }
 
 /**
+ * Updates the bench tool configuration.
+ * @param {string} key - configuration key
+ * @param {any} value - new value
+ * @param {boolean} global - whether to update globally or workspace only (default: false)
+ */
+async function updateBenchToolConfig(key, value, global = false) {
+  await vscode.workspace
+    .getConfiguration(WORKSPACE_NAME)
+    .update(key, value, global);
+}
+
+/**
  * Gets the bench console command based on the workspace configuration.
  * @returns {string} Console command (e.g. "bench --site mysite console --autoreload")
  */
@@ -249,6 +261,34 @@ function isValidImportStatement(importStatement, notify = true) {
   return false;
 }
 
+/**
+ * Get list of all site names from bench.
+ * Executes `bench --site all show-config -f json` and parses the JSON output.
+ * @returns {Promise<string[]>} Array of site names, or empty array if failed
+ */
+async function getAllSites() {
+  const { execSync } = require("child_process");
+
+  try {
+    // Execute the bench command to get all sites config in JSON format
+    const output = execSync("bench --site all show-config -f json", {
+      encoding: "utf-8",
+      cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+    });
+
+    // Parse JSON output
+    const sitesConfig = JSON.parse(output.trim());
+
+    // Extract site names (keys of the JSON object)
+    const siteNames = Object.keys(sitesConfig);
+
+    return siteNames;
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to fetch sites: ${error.message}`);
+    return [];
+  }
+}
+
 module.exports = {
   copyImportStatement,
   isValidImportStatement,
@@ -260,4 +300,6 @@ module.exports = {
   getBenchToolConfig,
   getConsoleCommand,
   getExecuteCommand,
+  getAllSites,
+  updateBenchToolConfig,
 };
