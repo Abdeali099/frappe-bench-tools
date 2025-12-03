@@ -102,14 +102,13 @@ async function benchExecute() {
     return;
   }
 
-  const { acceptArgsForExecute, acceptKwargsForExecute } =
-    utils.getBenchToolConfig();
+  const config = utils.getBenchToolConfig();
 
   let args = null;
   let kwargs = null;
 
   // Prompt for args (optional)
-  if (acceptArgsForExecute) {
+  if (config.acceptArgsForExecute) {
     args = await vscode.window.showInputBox({
       prompt: 'Enter args as Python list (e.g. ["a", "b", "c"]) or leave blank',
       placeHolder: '["a", "b", "c"]',
@@ -119,7 +118,7 @@ async function benchExecute() {
   args = args ? args.trim() : null;
 
   // Prompt for kwargs (optional)
-  if (acceptKwargsForExecute) {
+  if (config.acceptKwargsForExecute) {
     kwargs = await vscode.window.showInputBox({
       prompt:
         'Enter kwargs as Python dict (e.g. {"key": "val"}) or leave blank',

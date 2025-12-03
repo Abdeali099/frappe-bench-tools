@@ -50,7 +50,7 @@ async function getOrCreateTerminal(name, startupCommand = null, delay = true) {
  * Get bench console terminal (auto-starts bench console).
  */
 async function getConsoleTerminal() {
-  const { consoleTerminalName } = getBenchToolConfig();
+  const consoleTerminalName = getBenchToolConfig("consoleTerminalName");
   return getOrCreateTerminal(consoleTerminalName, getConsoleCommand());
 }
 
@@ -58,7 +58,7 @@ async function getConsoleTerminal() {
  * Get bench execute terminal (plain shell, no startup command).
  */
 async function getExecuteTerminal() {
-  const { executeTerminalName } = getBenchToolConfig();
+  const executeTerminalName = getBenchToolConfig("executeTerminalName");
   return getOrCreateTerminal(executeTerminalName);
 }
 
@@ -101,7 +101,7 @@ async function writeToExecuteTerminal(lines, shouldExecute = true) {
  * Get bench command terminal (plain shell, no startup command).
  */
 async function getCommandTerminal() {
-  const { commandTerminalName } = getBenchToolConfig();
+  const commandTerminalName = getBenchToolConfig("commandTerminalName");
   return getOrCreateTerminal(commandTerminalName, null, false);
 }
 

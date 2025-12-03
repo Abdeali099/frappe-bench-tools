@@ -17,23 +17,30 @@ const KEY_WORDS = {
 
 /**
  * Reads configuration from workspace settings.
+ * @param {string|null} key - specific configuration key to retrieve (optional)
  * @returns {object} Bench tool configurations
  */
-function getBenchToolConfig() {
-  const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
+function getBenchToolConfig(key = null) {
+  const configuration = vscode.workspace.getConfiguration(WORKSPACE_NAME);
 
-  return {
-    siteName: config.get("siteName"),
+  const configs = {
+    siteName: configuration.get("siteName"),
     consoleTerminalName:
-      config.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
-    autoReload: config.get("autoReload"),
+      configuration.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
+    autoReload: configuration.get("autoReload"),
     executeTerminalName:
-      config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
-    acceptArgsForExecute: config.get("acceptArgsForExecute"),
-    acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+      configuration.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
+    acceptArgsForExecute: configuration.get("acceptArgsForExecute"),
+    acceptKwargsForExecute: configuration.get("acceptKwargsForExecute"),
     commandTerminalName:
-      config.get("commandTerminalName") || COMMAND_TERMINAL_NAME,
+      configuration.get("commandTerminalName") || COMMAND_TERMINAL_NAME,
   };
+
+  if (key) {
+    return configs[key];
+  }
+
+  return configs;
 }
 
 /**
