@@ -6,6 +6,7 @@ const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
+const COMMAND_TERMINAL_NAME = "Bench Commands";
 
 const KEY_WORDS = {
   IMPORT: "import",
@@ -16,21 +17,42 @@ const KEY_WORDS = {
 
 /**
  * Reads configuration from workspace settings.
+ * @param {string|null} key - specific configuration key to retrieve (optional)
  * @returns {object} Bench tool configurations
  */
-function getBenchToolConfig() {
-  const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
+function getBenchToolConfig(key = null) {
+  const configuration = vscode.workspace.getConfiguration(WORKSPACE_NAME);
 
-  return {
-    siteName: config.get("siteName"),
+  const configs = {
+    siteName: configuration.get("siteName"),
     consoleTerminalName:
-      config.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
-    autoReload: config.get("autoReload"),
+      configuration.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
+    autoReload: configuration.get("autoReload"),
     executeTerminalName:
-      config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
-    acceptArgsForExecute: config.get("acceptArgsForExecute"),
-    acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+      configuration.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
+    acceptArgsForExecute: configuration.get("acceptArgsForExecute"),
+    acceptKwargsForExecute: configuration.get("acceptKwargsForExecute"),
+    commandTerminalName:
+      configuration.get("commandTerminalName") || COMMAND_TERMINAL_NAME,
   };
+
+  if (key) {
+    return configs[key];
+  }
+
+  return configs;
+}
+
+/**
+ * Updates the bench tool configuration.
+ * @param {string} key - configuration key
+ * @param {any} value - new value
+ * @param {boolean} global - whether to update globally or workspace only (default: false)
+ */
+async function updateBenchToolConfig(key, value, global = false) {
+  await vscode.workspace
+    .getConfiguration(WORKSPACE_NAME)
+    .update(key, value, global);
 }
 
 /**
@@ -39,21 +61,21 @@ function getBenchToolConfig() {
  */
 function getConsoleCommand() {
   const config = getBenchToolConfig();
-  const parts = ["bench"];
+  const command = ["bench"];
 
   // add site if specified
   if (config.siteName) {
-    parts.push("--site", config.siteName);
+    command.push("--site", config.siteName);
   }
 
-  parts.push("console");
+  command.push("console");
 
   // add autoreload if enabled
   if (config.autoReload) {
-    parts.push("--autoreload");
+    command.push("--autoreload");
   }
 
-  return parts.join(" ");
+  return command.join(" ");
 }
 
 /**
@@ -65,25 +87,25 @@ function getConsoleCommand() {
  */
 function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   const config = getBenchToolConfig();
-  const parts = ["bench"];
+  const command = ["bench"];
 
   // add site if specified
   if (config.siteName) {
-    parts.push("--site", config.siteName);
+    command.push("--site", config.siteName);
   }
 
-  parts.push("execute");
-  parts.push(pythonPath);
+  command.push("execute");
+  command.push(pythonPath);
 
   if (args && config.acceptArgsForExecute) {
-    parts.push("--args", `'${args}'`);
+    command.push("--args", `'${args}'`);
   }
 
   if (kwargs && config.acceptKwargsForExecute) {
-    parts.push("--kwargs", `'${kwargs}'`);
+    command.push("--kwargs", `'${kwargs}'`);
   }
 
-  return parts.join(" ");
+  return command.join(" ");
 }
 
 /**
@@ -246,6 +268,34 @@ function isValidImportStatement(importStatement, notify = true) {
   return false;
 }
 
+/**
+ * Get list of all site names from bench.
+ * Executes `bench --site all show-config -f json` and parses the JSON output.
+ * @returns {Promise<string[]>} Array of site names, or empty array if failed
+ */
+async function getAllSites() {
+  const { execSync } = require("child_process");
+
+  try {
+    // Execute the bench command to get all sites config in JSON format
+    const output = execSync("bench --site all show-config -f json", {
+      encoding: "utf-8",
+      cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+    });
+
+    // Parse JSON output
+    const sitesConfig = JSON.parse(output.trim());
+
+    // Extract site names (keys of the JSON object)
+    const siteNames = Object.keys(sitesConfig);
+
+    return siteNames;
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to fetch sites: ${error.message}`);
+    return [];
+  }
+}
+
 module.exports = {
   copyImportStatement,
   isValidImportStatement,
@@ -257,4 +307,6 @@ module.exports = {
   getBenchToolConfig,
   getConsoleCommand,
   getExecuteCommand,
+  getAllSites,
+  updateBenchToolConfig,
 };

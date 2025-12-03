@@ -17,9 +17,10 @@ function sleep(ms) {
  * Get or create a terminal by name, with optional startup command.
  * @param {string} name - terminal name
  * @param {string|null} startupCommand - command to run after creation
+ * @param {boolean} delay - whether to wait for shell initialization
  * @returns {Promise<vscode.Terminal>}
  */
-async function getOrCreateTerminal(name, startupCommand = null) {
+async function getOrCreateTerminal(name, startupCommand = null, delay = true) {
   try {
     let terminal = vscode.window.terminals.find((t) => t.name === name);
 
@@ -28,7 +29,7 @@ async function getOrCreateTerminal(name, startupCommand = null) {
       terminal.show();
 
       // wait for shell init (like auto `source ...`)
-      await sleep(DELAY);
+      if (delay) await sleep(DELAY);
 
       if (startupCommand) {
         terminal.sendText(startupCommand);
@@ -49,7 +50,7 @@ async function getOrCreateTerminal(name, startupCommand = null) {
  * Get bench console terminal (auto-starts bench console).
  */
 async function getConsoleTerminal() {
-  const { consoleTerminalName } = getBenchToolConfig();
+  const consoleTerminalName = getBenchToolConfig("consoleTerminalName");
   return getOrCreateTerminal(consoleTerminalName, getConsoleCommand());
 }
 
@@ -57,7 +58,7 @@ async function getConsoleTerminal() {
  * Get bench execute terminal (plain shell, no startup command).
  */
 async function getExecuteTerminal() {
-  const { executeTerminalName } = getBenchToolConfig();
+  const executeTerminalName = getBenchToolConfig("executeTerminalName");
   return getOrCreateTerminal(executeTerminalName);
 }
 
@@ -82,9 +83,10 @@ async function writeToConsole(lines, shouldExecute = true) {
 
 /**
  * Send text to bench execute terminal.
- * @param {...string} lines
+ * @param {string[]} lines
+ * @param {boolean} shouldExecute - whether to execute the commands immediately
  */
-async function writeToExecuteTerminal(...lines) {
+async function writeToExecuteTerminal(lines, shouldExecute = true) {
   if (!lines || lines.length === 0) {
     vscode.window.showWarningMessage("No command to execute in terminal.");
     return;
@@ -92,12 +94,39 @@ async function writeToExecuteTerminal(...lines) {
 
   const terminal = await getExecuteTerminal();
   if (!terminal) return;
-  lines.forEach((line) => terminal.sendText(line));
+  lines.forEach((line) => terminal.sendText(line, shouldExecute));
+}
+
+/**
+ * Get bench command terminal (plain shell, no startup command).
+ */
+async function getCommandTerminal() {
+  const commandTerminalName = getBenchToolConfig("commandTerminalName");
+  return getOrCreateTerminal(commandTerminalName, null, false);
+}
+
+/**
+ * Send text to command terminal.
+ * @param {string[]} lines
+ * @param {boolean} shouldExecute - whether to execute the commands immediately
+ */
+async function writeToCommandTerminal(lines, shouldExecute = true) {
+  if (!lines || lines.length === 0) {
+    vscode.window.showWarningMessage("No command to execute in terminal.");
+    return;
+  }
+
+  const terminal = await getCommandTerminal();
+  if (!terminal) return;
+
+  lines.forEach((line) => terminal.sendText(line, shouldExecute));
 }
 
 module.exports = {
-  writeToConsole,
-  writeToExecuteTerminal,
   getConsoleTerminal,
   getExecuteTerminal,
+  getCommandTerminal,
+  writeToConsole,
+  writeToExecuteTerminal,
+  writeToCommandTerminal,
 };

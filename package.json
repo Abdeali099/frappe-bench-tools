@@ -69,6 +69,50 @@
       {
         "command": "frappe-bench-tools.bench-execute-command",
         "title": "Frappe Bench: Execute Python Function"
+      },
+      {
+        "command": "frappe-bench-tools.show-bench-version",
+        "title": "Frappe Bench: Show Bench Version"
+      },
+      {
+        "command": "frappe-bench-tools.show-all-apps-version",
+        "title": "Frappe Bench: Show All Apps Version"
+      },
+      {
+        "command": "frappe-bench-tools.show-bench-src",
+        "title": "Frappe Bench: Show Bench Source"
+      },
+      {
+        "command": "frappe-bench-tools.bench-start",
+        "title": "Frappe Bench: Start Bench"
+      },
+      {
+        "command": "frappe-bench-tools.bench-restart",
+        "title": "Frappe Bench: Restart Bench"
+      },
+      {
+        "command": "frappe-bench-tools.bench-migrate",
+        "title": "Frappe Bench: Migrate Bench"
+      },
+      {
+        "command": "frappe-bench-tools.bench-update",
+        "title": "Frappe Bench: Update Bench"
+      },
+      {
+        "command": "frappe-bench-tools.browse-site",
+        "title": "Frappe Bench: Browse Site"
+      },
+      {
+        "command": "frappe-bench-tools.browse-site-as-admin",
+        "title": "Frappe Bench: Browse Site as Administrator"
+      },
+      {
+        "command": "frappe-bench-tools.use-site",
+        "title": "Frappe Bench: Use Site"
+      },
+      {
+        "command": "frappe-bench-tools.upgrade-bench-cli",
+        "title": "Frappe Bench: Upgrade Bench CLI"
       }
     ],
     "submenus": [
@@ -163,6 +207,16 @@
             "type": "boolean",
             "default": true,
             "description": "Whether to accept keyword arguments for the execute command."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Commands",
+        "properties": {
+          "frappeBenchTools.commandTerminalName": {
+            "type": "string",
+            "default": "Bench Commands",
+            "description": "The name of the bench command terminal."
           }
         }
       }
