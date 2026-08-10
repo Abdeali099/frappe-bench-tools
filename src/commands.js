@@ -9,6 +9,8 @@ const {
   convertToImportAll,
   isValidImportStatement,
   convertToImportAs,
+  getRecreateCustomFieldsSteps,
+  chainCommands,
 } = require("./utils");
 const {
   writeToConsole,
@@ -156,6 +158,58 @@ async function handleBenchExecute() {
   await writeToExecuteTerminal(cmd);
 }
 
+/** Recreate custom fields on a site.
+ * Deletes every Custom Field record and runs the setup methods again.
+ * Prompts for the site name, pre-filled with the configured one.
+ */
+async function handleRecreateCustomFields() {
+  const {
+    siteName,
+    acceptSiteForRecreate,
+    confirmRecreateCustomFields,
+    recreateCustomFieldsMethods,
+  } = getBenchToolConfig();
+
+  // without them, the custom fields would be deleted and never recreated
+  if (!recreateCustomFieldsMethods.length) {
+    vscode.window.showErrorMessage(
+      "No methods configured. Set `frappeBenchTools.recreateCustomFieldsMethods` to the functions that create your custom fields."
+    );
+    return;
+  }
+
+  // site from the settings, editable before the commands are run
+  let site = siteName || "";
+
+  if (acceptSiteForRecreate) {
+    site = await vscode.window.showInputBox({
+      prompt: "Enter the site to recreate custom fields on",
+      placeHolder: "e.g. mysite.localhost (blank for the default bench site)",
+      value: site,
+    });
+
+    // cancelled
+    if (site === undefined) return;
+  }
+
+  site = site.trim();
+
+  const steps = getRecreateCustomFieldsSteps(site);
+
+  if (confirmRecreateCustomFields) {
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete all Custom Field records on ${site || "the default site"}?`,
+      { modal: true, detail: steps.join("\n") },
+      "Recreate"
+    );
+
+    if (confirm !== "Recreate") return;
+  }
+
+  // a single chained command, so that the steps run strictly one after another
+  await writeToExecuteTerminal(chainCommands(steps));
+}
+
 // ++++++++ Register all commands +++++++++ //
 
 /**
@@ -172,6 +226,7 @@ function registerCommands(context) {
     "import-as-in-bench-console": handleImportAs,
     "run-func-in-bench-console": handleRunFunction,
     "bench-execute-command": handleBenchExecute,
+    "recreate-custom-fields": handleRecreateCustomFields,
   };
 
   for (const cmd in commandHandlers) {

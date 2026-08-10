@@ -81,6 +81,20 @@ bench --site <site> execute <path.to.function>
 
 ![Bench Execute Demo](./assets/gifs/bench-execute-demo.gif)
 
+### ♻️ Recreate Custom Fields
+
+Deletes every `Custom Field` record on a site and creates them again by running the setup functions of your app:
+
+```bash
+bench --site <site> execute 'frappe.db.delete("Custom Field")' && bench --site <site> clear-cache && bench --site <site> execute <path.to.after_install>
+```
+
+- Prompts for the site name, pre-filled with `siteName`.
+- Runs the functions configured in `recreateCustomFieldsMethods`, in order.
+- Everything is chained with `&&`, so the steps run one after another and stop at the first failure.
+- Asks for confirmation first, since the delete is destructive.
+- Perfect for picking up renamed, reordered or removed custom fields without reinstalling the app.
+
 ### 🖱️ Context Menu Integration
 
 Access all features through a dedicated **“Frappe Bench”** submenu in the right-click context menu.
@@ -195,6 +209,38 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 }
 ```
 
+### Recreate Custom Fields Settings
+
+#### `frappeBenchTools.recreateCustomFieldsMethods`
+
+- **Type**: `string[]`
+- **Default**: `[]`
+- **Description**: Dotted paths of the functions that create your custom fields, executed in order. The command does nothing until this is set.
+
+#### `frappeBenchTools.acceptSiteForRecreate`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Prompt for the site name, pre-filled with `siteName`.
+
+#### `frappeBenchTools.confirmRecreateCustomFields`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Ask for confirmation before deleting all `Custom Field` records.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.recreateCustomFieldsMethods": [
+    "my_app.setup.after_install"
+  ],
+  "frappeBenchTools.acceptSiteForRecreate": true,
+  "frappeBenchTools.confirmRecreateCustomFields": true
+}
+```
+
 ![Configs](./assets/images/configs.png)
 
 ## Commands
@@ -211,6 +257,7 @@ All commands are available from the **Command Palette** (<kbd>Ctrl</kbd>+<kbd>Sh
 | `Import As in Bench Console`       | Import with custom alias                       |
 | `Run Function in Bench Console`    | Import and execute function                    |
 | `Bench Execute Python Function`    | Execute function using bench execute command   |
+| `Recreate Custom Fields`           | Delete all custom fields on a site and create them again |
 
 ## Troubleshooting
 

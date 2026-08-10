@@ -7,6 +7,8 @@ const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
 
+const CUSTOM_FIELD_DOCTYPE = "Custom Field";
+
 const KEY_WORDS = {
   IMPORT: "import",
   FROM: "from",
@@ -30,6 +32,10 @@ function getBenchToolConfig() {
       config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
     acceptArgsForExecute: config.get("acceptArgsForExecute"),
     acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+    recreateCustomFieldsMethods:
+      config.get("recreateCustomFieldsMethods") || [],
+    acceptSiteForRecreate: config.get("acceptSiteForRecreate"),
+    confirmRecreateCustomFields: config.get("confirmRecreateCustomFields"),
   };
 }
 
@@ -84,6 +90,44 @@ function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   }
 
   return parts.join(" ");
+}
+
+/**
+ * Prefixes a bench command with the site, if any.
+ * @param {string} site - empty for the default bench site
+ * @returns {string} e.g. "bench --site mysite"
+ */
+function getBenchCommand(site) {
+  return site ? `bench --site ${site}` : "bench";
+}
+
+/**
+ * Gets the steps to recreate custom fields on a site.
+ * Every Custom Field record is deleted first, and the setup methods are then
+ * executed to create them again.
+ * @param {string} site - empty for the default bench site
+ * @returns {string[]} steps, in the order they must run
+ */
+function getRecreateCustomFieldsSteps(site) {
+  const { recreateCustomFieldsMethods } = getBenchToolConfig();
+  const bench = getBenchCommand(site);
+
+  return [
+    `${bench} execute 'frappe.db.delete("${CUSTOM_FIELD_DOCTYPE}")'`,
+    // deleting via the db skips the doctype cache, hence the explicit clear
+    `${bench} clear-cache`,
+    ...recreateCustomFieldsMethods.map((method) => `${bench} execute ${method}`),
+  ];
+}
+
+/**
+ * Chains the steps into a single command, so that they run one after another
+ * and stop at the first failure.
+ * @param {string[]} steps
+ * @returns {string} chained command
+ */
+function chainCommands(steps) {
+  return steps.join(" && ");
 }
 
 /**
@@ -257,4 +301,6 @@ module.exports = {
   getBenchToolConfig,
   getConsoleCommand,
   getExecuteCommand,
+  getRecreateCustomFieldsSteps,
+  chainCommands,
 };
