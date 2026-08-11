@@ -11,11 +11,18 @@ const {
   convertToImportAs,
   getRecreateCustomFieldsSteps,
   chainCommands,
+  getCustomCommands,
+  getPlaceholderValues,
+  resolveCommand,
+  getUnresolvedPlaceholders,
+  saveCustomCommand,
+  PLACEHOLDERS,
 } = require("./utils");
 const {
   writeToConsole,
   getConsoleTerminal,
   writeToExecuteTerminal,
+  writeToCustomCommandTerminal,
 } = require("./terminal");
 
 // ++++++++ Constants +++++++++ //
@@ -210,6 +217,84 @@ async function handleRecreateCustomFields() {
   await writeToExecuteTerminal(chainCommands(steps));
 }
 
+/** Create a custom command.
+ * Prompts for a name and the command itself, and saves it to the user settings.
+ */
+async function handleCreateCustomCommand() {
+  const commands = getCustomCommands();
+
+  const name = (
+    await vscode.window.showInputBox({
+      prompt: "Enter a name for the command",
+      placeHolder: "e.g. Update App",
+      validateInput: (value) =>
+        value.trim() ? null : "The name cannot be empty.",
+    })
+  )?.trim();
+
+  if (!name) return;
+
+  const command = (
+    await vscode.window.showInputBox({
+      prompt: `Enter the command to run (${Object.keys(PLACEHOLDERS).join(
+        ", "
+      )} are filled in for you)`,
+      placeHolder: "e.g. bench --site {site} migrate",
+      // an existing name edits that command, rather than silently replacing it
+      value: commands[name],
+      validateInput: (value) =>
+        value.trim() ? null : "The command cannot be empty.",
+    })
+  )?.trim();
+
+  if (!command) return;
+
+  await saveCustomCommand(name, command);
+
+  vscode.window.showInformationMessage(`Saved command: ${name}`);
+}
+
+/** Run a custom command in the custom command terminal.
+ * Commands are picked from the ones saved in the settings.
+ */
+async function handleRunCustomCommand() {
+  const commands = Object.entries(getCustomCommands());
+
+  if (!commands.length) {
+    const create = await vscode.window.showInformationMessage(
+      "No commands saved yet.",
+      "Create Command"
+    );
+
+    if (create) await handleCreateCustomCommand();
+    return;
+  }
+
+  const values = getPlaceholderValues();
+
+  const picked = await vscode.window.showQuickPick(
+    commands.map(([name, command]) => ({
+      label: name,
+      // the resolved command is both shown and run, so that what the pick
+      // says is exactly what happens
+      detail: resolveCommand(command, values),
+      unresolved: getUnresolvedPlaceholders(command, values),
+    })),
+    { placeHolder: "Select a command to run", matchOnDetail: true }
+  );
+
+  if (!picked) return;
+
+  if (picked.unresolved.length) {
+    vscode.window.showErrorMessage(
+      `Cannot run "${picked.label}": ${picked.unresolved.join(", ")}.`
+    );
+    return;
+  }
+
+  await writeToCustomCommandTerminal(picked.detail);
+}
+
 // ++++++++ Register all commands +++++++++ //
 
 /**
@@ -227,6 +312,8 @@ function registerCommands(context) {
     "run-func-in-bench-console": handleRunFunction,
     "bench-execute-command": handleBenchExecute,
     "recreate-custom-fields": handleRecreateCustomFields,
+    "create-custom-command": handleCreateCustomCommand,
+    "run-custom-command": handleRunCustomCommand,
   };
 
   for (const cmd in commandHandlers) {

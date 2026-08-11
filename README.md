@@ -95,6 +95,39 @@ bench --site <site> execute 'frappe.db.delete("Custom Field")' && bench --site <
 - Asks for confirmation first, since the delete is destructive.
 - Perfect for picking up renamed, reordered or removed custom fields without reinstalling the app.
 
+### 🛠️ Custom Commands
+
+Save the commands you run over and over, and pick them from a list instead of retyping them.
+
+- **Create Custom Command** — prompts for a name and the command, then saves it to your settings.
+- **Run Custom Command** — pick a saved command by name (type to filter) and it runs in its own terminal.
+
+Commands can use placeholders, filled in from the settings when the command runs:
+
+| Placeholder | Filled in from |
+|---|---|
+| `{site}` | `frappeBenchTools.siteName` |
+| `{app}` | `frappeBenchTools.defaultApp` |
+| `{bench}` | the bench found in your workspace folders |
+| `{appPath}` | the directory of `defaultApp`, found in your workspace folders |
+
+So `bench --site {site} migrate` runs as `bench --site my-site.localhost migrate`.
+
+`{bench}` and `{appPath}` are not configured, they are searched for, so that commands never depend on where the terminal happens to be opened:
+
+- `{bench}` walks each workspace folder up until one holds `sites/apps.txt`.
+- `{appPath}` searches the workspace folders breadth first for a directory named after the app, so the app itself is found before the python package of the same name inside it. Apps kept outside `apps/` are found just as well.
+
+The terminal is opened at the bench for the same reason, since `bench` commands do not run from an app folder.
+
+One command is available out of the box, to bring an app up to date:
+
+```bash
+git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate
+```
+
+The picker shows the command with its placeholders already filled in, so you always see exactly what will run. Saved commands live in `frappeBenchTools.customCommands`, so they can be edited or removed from the settings like any other setting.
+
 ### 🖱️ Context Menu Integration
 
 Access all features through a dedicated **“Frappe Bench”** submenu in the right-click context menu.
@@ -148,11 +181,18 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 - **Default**: `"frappe.localhost"`
 - **Description**: Site name for running Bench commands.
 
+#### `frappeBenchTools.defaultApp`
+
+- **Type**: `string`
+- **Default**: `"frappe"`
+- **Description**: App name used to fill the `{app}` placeholder of custom commands.
+
 **Example:**
 
 ```json
 {
-  "frappeBenchTools.siteName": "my-site.localhost"
+  "frappeBenchTools.siteName": "my-site.localhost",
+  "frappeBenchTools.defaultApp": "erpnext"
 }
 ```
 
@@ -243,6 +283,34 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 
 ![Configs](./assets/images/configs.png)
 
+### 🛠️ Custom Command Settings
+
+#### `frappeBenchTools.customCommandTerminalName`
+
+- **Type**: `string`
+- **Default**: `"Bench Command"`
+- **Description**: Terminal name for custom commands.
+
+#### `frappeBenchTools.customCommands`
+
+- **Type**: `object` (command name to command)
+- **Description**: The saved commands, using `{site}`, `{app}`, `{bench}` and `{appPath}` as placeholders.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.customCommandTerminalName": "Bench Command",
+  "frappeBenchTools.customCommands": {
+    "Update App": "git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate",
+    "Migrate Site": "bench --site {site} migrate",
+    "Run Tests": "bench --site {site} run-tests --app {app}"
+  }
+}
+```
+
+![Configs](./assets/images/configs.png)
+
 ## Commands
 
 All commands are available from the **Command Palette** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>):
@@ -258,6 +326,8 @@ All commands are available from the **Command Palette** (<kbd>Ctrl</kbd>+<kbd>Sh
 | `Run Function in Bench Console`    | Import and execute function                    |
 | `Bench Execute Python Function`    | Execute function using bench execute command   |
 | `Recreate Custom Fields`           | Delete all custom fields on a site and create them again |
+| `Create Custom Command`            | Save a command to run later                    |
+| `Run Custom Command`               | Pick a saved command and run it                |
 
 ## Troubleshooting
 

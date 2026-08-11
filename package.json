@@ -73,6 +73,14 @@
       {
         "command": "frappe-bench-tools.recreate-custom-fields",
         "title": "Frappe Bench: Recreate Custom Fields"
+      },
+      {
+        "command": "frappe-bench-tools.create-custom-command",
+        "title": "Frappe Bench: Create Custom Command"
+      },
+      {
+        "command": "frappe-bench-tools.run-custom-command",
+        "title": "Frappe Bench: Run Custom Command"
       }
     ],
     "submenus": [
@@ -125,6 +133,14 @@
         {
           "command": "frappe-bench-tools.recreate-custom-fields",
           "group": "execute@2"
+        },
+        {
+          "command": "frappe-bench-tools.create-custom-command",
+          "group": "custom@1"
+        },
+        {
+          "command": "frappe-bench-tools.run-custom-command",
+          "group": "custom@2"
         }
       ]
     },
@@ -136,6 +152,11 @@
             "type": "string",
             "default": "frappe.localhost",
             "description": "The site name to use when running bench commands (otherwise default bench site will be used)."
+          },
+          "frappeBenchTools.defaultApp": {
+            "type": "string",
+            "default": "frappe",
+            "description": "The app name to use when running bench commands."
           }
         }
       },
@@ -194,6 +215,26 @@
             "type": "boolean",
             "default": true,
             "description": "Whether to ask for confirmation before deleting all Custom Field records."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Custom Commands",
+        "properties": {
+          "frappeBenchTools.customCommandTerminalName": {
+            "type": "string",
+            "default": "Bench Command",
+            "description": "The name of the custom command terminal."
+          },
+          "frappeBenchTools.customCommands": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {
+              "Update App": "git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate"
+            },
+            "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`. `{bench}` and `{appPath}` are searched for in the workspace folders."
           }
         }
       }

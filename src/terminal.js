@@ -1,5 +1,9 @@
 const vscode = require("vscode");
-const { getBenchToolConfig, getConsoleCommand } = require("./utils");
+const {
+  getBenchToolConfig,
+  getConsoleCommand,
+  getBenchPath,
+} = require("./utils");
 
 const DELAY = 1500;
 const BRACKET_START = "\x1b[200~";
@@ -24,7 +28,11 @@ async function getOrCreateTerminal(name, startupCommand = null) {
     let terminal = vscode.window.terminals.find((t) => t.name === name);
 
     if (!terminal) {
-      terminal = vscode.window.createTerminal(name);
+      // bench commands only work from the bench, not from the opened app
+      terminal = vscode.window.createTerminal({
+        name,
+        cwd: getBenchPath() || undefined,
+      });
       terminal.show();
 
       // wait for shell init (like auto `source ...`)
@@ -62,6 +70,14 @@ async function getExecuteTerminal() {
 }
 
 /**
+ * Get custom command terminal (plain shell, no startup command).
+ */
+async function getCustomCommandTerminal() {
+  const { customCommandTerminalName } = getBenchToolConfig();
+  return getOrCreateTerminal(customCommandTerminalName);
+}
+
+/**
  * Send text to bench console terminal.
  * @param {string[]} lines
  * @param {boolean} shouldExecute - whether to execute the commands immediately
@@ -81,23 +97,42 @@ async function writeToConsole(lines, shouldExecute = true) {
 }
 
 /**
- * Send text to bench execute terminal.
- * @param {...string} lines
+ * Send text to a terminal.
+ * @param {function(): Promise<vscode.Terminal>} getTerminal
+ * @param {string[]} lines
  */
-async function writeToExecuteTerminal(...lines) {
+async function writeToTerminal(getTerminal, lines) {
   if (!lines || lines.length === 0) {
     vscode.window.showWarningMessage("No command to execute in terminal.");
     return;
   }
 
-  const terminal = await getExecuteTerminal();
+  const terminal = await getTerminal();
   if (!terminal) return;
   lines.forEach((line) => terminal.sendText(line));
+}
+
+/**
+ * Send text to bench execute terminal.
+ * @param {...string} lines
+ */
+async function writeToExecuteTerminal(...lines) {
+  return writeToTerminal(getExecuteTerminal, lines);
+}
+
+/**
+ * Send text to custom command terminal.
+ * @param {...string} lines
+ */
+async function writeToCustomCommandTerminal(...lines) {
+  return writeToTerminal(getCustomCommandTerminal, lines);
 }
 
 module.exports = {
   writeToConsole,
   writeToExecuteTerminal,
+  writeToCustomCommandTerminal,
   getConsoleTerminal,
   getExecuteTerminal,
+  getCustomCommandTerminal,
 };

@@ -1,4 +1,6 @@
 const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
 const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
@@ -6,8 +8,48 @@ const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
+const CUSTOM_COMMAND_TERMINAL_NAME = "Bench Command";
 
 const CUSTOM_FIELD_DOCTYPE = "Custom Field";
+
+const CUSTOM_COMMANDS_SETTING = "customCommands";
+
+// a bench is the directory that holds the sites, apps live in ./apps
+const BENCH_MARKER = path.join("sites", "apps.txt");
+
+// how deep to search the workspace folders for an app
+const APP_SEARCH_DEPTH = 4;
+
+// searching these is never worth it, and they can be enormous
+const SKIPPED_DIRS = new Set([
+  "node_modules",
+  "env",
+  "__pycache__",
+  "dist",
+  "public",
+  "sites",
+  "logs",
+]);
+
+// placeholders that are filled in before a command is run
+const PLACEHOLDERS = {
+  "{site}": {
+    value: (config) => config.siteName,
+    source: `${WORKSPACE_NAME}.siteName`,
+  },
+  "{app}": {
+    value: (config) => config.defaultApp,
+    source: `${WORKSPACE_NAME}.defaultApp`,
+  },
+  "{bench}": {
+    value: () => getBenchPath(),
+    source: "a bench in the workspace folders",
+  },
+  "{appPath}": {
+    value: (config) => getAppPath(config.defaultApp),
+    source: "an app directory in the workspace folders",
+  },
+};
 
 const KEY_WORDS = {
   IMPORT: "import",
@@ -25,6 +67,7 @@ function getBenchToolConfig() {
 
   return {
     siteName: config.get("siteName"),
+    defaultApp: config.get("defaultApp"),
     consoleTerminalName:
       config.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
     autoReload: config.get("autoReload"),
@@ -32,10 +75,12 @@ function getBenchToolConfig() {
       config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
     acceptArgsForExecute: config.get("acceptArgsForExecute"),
     acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
-    recreateCustomFieldsMethods:
-      config.get("recreateCustomFieldsMethods") || [],
+    recreateCustomFieldsMethods: config.get("recreateCustomFieldsMethods") || [],
     acceptSiteForRecreate: config.get("acceptSiteForRecreate"),
     confirmRecreateCustomFields: config.get("confirmRecreateCustomFields"),
+    customCommandTerminalName:
+      config.get("customCommandTerminalName") || CUSTOM_COMMAND_TERMINAL_NAME,
+    customCommands: config.get(CUSTOM_COMMANDS_SETTING) || {},
   };
 }
 
@@ -128,6 +173,147 @@ function getRecreateCustomFieldsSteps(site) {
  */
 function chainCommands(steps) {
   return steps.join(" && ");
+}
+
+/**
+ * Finds the bench directory, so that commands do not depend on where the
+ * terminal happens to be opened. Each workspace folder is walked up until a
+ * bench is found, which covers opening an app rather than the bench itself.
+ * @returns {string|null} path of the bench, or null if there is none
+ */
+function getBenchPath() {
+  for (const folder of vscode.workspace.workspaceFolders || []) {
+    let dir = folder.uri.fsPath;
+
+    while (dir !== path.dirname(dir)) {
+      if (fs.existsSync(path.join(dir, BENCH_MARKER))) return dir;
+      dir = path.dirname(dir);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Lists the sub directories worth searching, if the directory can be read.
+ * @param {string} dir
+ * @returns {string[]} absolute paths
+ */
+function getSearchableDirs(dir) {
+  try {
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter(
+        (entry) =>
+          entry.isDirectory() &&
+          !entry.name.startsWith(".") &&
+          !SKIPPED_DIRS.has(entry.name)
+      )
+      .map((entry) => path.join(dir, entry.name));
+  } catch {
+    // unreadable directories are simply not searched
+    return [];
+  }
+}
+
+/**
+ * Finds the directory of an app by searching the workspace folders for it.
+ * The search is breadth first, so the outermost match wins, which is the app
+ * itself rather than the python package of the same name inside it.
+ * @param {string} app - app name, e.g. "erpnext"
+ * @returns {string|null} path of the app, or null if it is not found
+ */
+function getAppPath(app) {
+  if (!app) return null;
+
+  let dirs = (vscode.workspace.workspaceFolders || []).map(
+    (folder) => folder.uri.fsPath
+  );
+
+  for (let depth = 0; dirs.length && depth <= APP_SEARCH_DEPTH; depth++) {
+    const appDir = dirs.find((dir) => path.basename(dir) === app);
+    if (appDir) return appDir;
+
+    dirs = dirs.flatMap(getSearchableDirs);
+  }
+
+  return null;
+}
+
+/**
+ * Gets the custom commands from the workspace configuration.
+ * @returns {object} custom commands, as name to command
+ */
+function getCustomCommands() {
+  return getBenchToolConfig().customCommands;
+}
+
+/**
+ * Resolves every placeholder once, since searching the workspace for the bench
+ * and the app is not worth repeating for each command.
+ * @returns {object} placeholder to its value, empty when it cannot be resolved
+ */
+function getPlaceholderValues() {
+  const config = getBenchToolConfig();
+
+  return Object.fromEntries(
+    Object.entries(PLACEHOLDERS).map(([placeholder, { value }]) => [
+      placeholder,
+      value(config) || "",
+    ])
+  );
+}
+
+/**
+ * Fills the placeholders of a custom command.
+ * @param {string} command - e.g. "bench --site {site} migrate"
+ * @param {object} values - as returned by getPlaceholderValues()
+ * @returns {string} command to run (e.g. "bench --site mysite migrate")
+ */
+function resolveCommand(command, values = getPlaceholderValues()) {
+  return Object.entries(values).reduce(
+    // replaced through a function, so that a $ in a value is not a pattern
+    (resolved, [placeholder, value]) =>
+      resolved.replaceAll(placeholder, () => value),
+    command
+  );
+}
+
+/**
+ * Gets the placeholders a command uses, but that cannot be filled in.
+ * Without them the command would run with a placeholder left empty.
+ * @param {string} command
+ * @param {object} values - as returned by getPlaceholderValues()
+ * @returns {string[]} placeholders and where they come from
+ */
+function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
+  return Object.keys(PLACEHOLDERS)
+    .filter(
+      (placeholder) => command.includes(placeholder) && !values[placeholder]
+    )
+    .map(
+      (placeholder) =>
+        `${placeholder} needs ${PLACEHOLDERS[placeholder].source}`
+    );
+}
+
+/**
+ * Saves a custom command to the user settings.
+ * @param {string} name - name shown when picking a command to run
+ * @param {string} command - command to run, placeholders included
+ */
+async function saveCustomCommand(name, command) {
+  const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
+
+  // only what was saved before, so that the defaults are not copied along and
+  // frozen to what they are today
+  const saved = config.inspect(CUSTOM_COMMANDS_SETTING)?.globalValue || {};
+
+  await config.update(
+    CUSTOM_COMMANDS_SETTING,
+    { ...saved, [name]: command },
+    vscode.ConfigurationTarget.Global
+  );
 }
 
 /**
@@ -303,4 +489,12 @@ module.exports = {
   getExecuteCommand,
   getRecreateCustomFieldsSteps,
   chainCommands,
+  getBenchPath,
+  getAppPath,
+  getCustomCommands,
+  getPlaceholderValues,
+  resolveCommand,
+  getUnresolvedPlaceholders,
+  saveCustomCommand,
+  PLACEHOLDERS,
 };
