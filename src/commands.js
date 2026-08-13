@@ -23,12 +23,21 @@ const {
   writeToCustomCommandTerminal,
 } = require("./terminal");
 
+// ++++++++ Constants +++++++++ //
+
+// extension ID
 const ID = "frappe-bench-tools";
 
+// ++++++++ Command Handlers +++++++++ //
+
+/** Open bench console terminal.
+ */
 async function handleOpenConsole() {
   await getConsoleTerminal();
 }
 
+/** Paste selected text or current lines to bench console terminal.
+ */
 async function handlePasteToConsole() {
   const texts = getSelectedTextOrLines();
 
@@ -40,6 +49,8 @@ async function handlePasteToConsole() {
   await writeToConsole(texts, false);
 }
 
+/** Paste clipboard text to bench console terminal.
+ */
 async function handlePasteClipboardToConsole() {
   let texts = [];
 
@@ -54,6 +65,9 @@ async function handlePasteClipboardToConsole() {
   await writeToConsole(texts, false);
 }
 
+/** Import object in bench console terminal.
+ * If no valid import statement is found, user is prompted to enter one.
+ */
 async function handleImportObject() {
   const importStatement = await copyImportStatement();
 
@@ -62,8 +76,11 @@ async function handleImportObject() {
   await writeToConsole([importStatement]);
 }
 
+/** Import all (*) in bench console terminal.
+ */
 async function handleImportAll() {
-  const importStatement = await copyImportStatement({ promptUser: false });
+  // user input not required here
+  const importStatement = await copyImportStatement(false);
 
   if (!isValidImportStatement(importStatement)) return;
 
@@ -85,6 +102,9 @@ async function handleImportAs() {
   await writeToConsole([importStatement]);
 }
 
+/** Run function in bench console terminal.
+ * If no valid import statement is found, user is prompted to enter one.
+ */
 async function handleRunFunction() {
   const importStatement = await copyImportStatement();
 
@@ -98,8 +118,12 @@ async function handleRunFunction() {
   await writeToConsole(lines);
 }
 
+/** Execute command in bench execute terminal.
+ * Prompts for args and kwargs if enabled in settings.
+ */
 async function handleBenchExecute() {
-  const pythonPath = await copyPythonPath();
+  // Try to get python path from selection or clipboard
+  let pythonPath = await copyPythonPath();
 
   if (!pythonPath) {
     vscode.window.showInformationMessage("No Python path found.");
@@ -109,15 +133,19 @@ async function handleBenchExecute() {
   const { acceptArgsForExecute, acceptKwargsForExecute } = getBenchToolConfig();
 
   let args = null;
+  let kwargs = null;
+
+  // Prompt for args (optional)
   if (acceptArgsForExecute) {
     args = await vscode.window.showInputBox({
       prompt: 'Enter args as Python list (e.g. ["a", "b", "c"]) or leave blank',
       placeHolder: '["a", "b", "c"]',
     });
   }
+
   args = args ? args.trim() : null;
 
-  let kwargs = null;
+  // Prompt for kwargs (optional)
   if (acceptKwargsForExecute) {
     kwargs = await vscode.window.showInputBox({
       prompt:
@@ -125,15 +153,21 @@ async function handleBenchExecute() {
       placeHolder: '{"key": "val"}',
     });
   }
+
   kwargs = kwargs ? kwargs.trim() : null;
 
-  const command = getExecuteCommand(pythonPath, args, kwargs);
+  // Build command
+  const cmd = getExecuteCommand(pythonPath, args, kwargs);
 
-  await writeToExecuteTerminal(command);
+  // Use a dedicated terminal for bench execute
+  await writeToExecuteTerminal(cmd);
 }
 
+/** Create a custom command.
+ * Prompts for a name and the command itself, and saves it to the user settings.
+ */
 async function handleCreateCustomCommand() {
-  const existingCommands = getCustomCommands();
+  const commands = getCustomCommands();
 
   const name = (
     await vscode.window.showInputBox({
@@ -152,7 +186,8 @@ async function handleCreateCustomCommand() {
         ", "
       )} are filled in for you)`,
       placeHolder: "e.g. bench --site {site} migrate",
-      value: existingCommands[name],
+      // an existing name edits that command, rather than silently replacing it
+      value: commands[name],
       validateInput: (value) =>
         value.trim() ? null : "The command cannot be empty.",
     })
@@ -165,6 +200,9 @@ async function handleCreateCustomCommand() {
   vscode.window.showInformationMessage(`Saved command: ${name}`);
 }
 
+/** Run a custom command in the custom command terminal.
+ * Commands are picked from the ones saved in the settings.
+ */
 async function handleRunCustomCommand() {
   const commands = Object.entries(getCustomCommands());
 
@@ -183,6 +221,8 @@ async function handleRunCustomCommand() {
   const picked = await vscode.window.showQuickPick(
     commands.map(([name, command]) => ({
       label: name,
+      // the resolved command is both shown and run, so that what the pick
+      // says is exactly what happens
       detail: resolveCommand(command, values),
       unresolved: getUnresolvedPlaceholders(command, values),
     })),
@@ -201,6 +241,12 @@ async function handleRunCustomCommand() {
   await writeToCustomCommandTerminal(picked.detail);
 }
 
+// ++++++++ Register all commands +++++++++ //
+
+/**
+ * Register all command handlers.
+ * @param {vscode.ExtensionContext} context
+ */
 function registerCommands(context) {
   const commandHandlers = {
     "open-bench-console": handleOpenConsole,
