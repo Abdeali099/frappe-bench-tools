@@ -71,10 +71,6 @@
         "title": "Frappe Bench: Execute Python Function"
       },
       {
-        "command": "frappe-bench-tools.recreate-custom-fields",
-        "title": "Frappe Bench: Recreate Custom Fields"
-      },
-      {
         "command": "frappe-bench-tools.create-custom-command",
         "title": "Frappe Bench: Create Custom Command"
       },
@@ -129,10 +125,6 @@
         {
           "command": "frappe-bench-tools.bench-execute-command",
           "group": "execute@1"
-        },
-        {
-          "command": "frappe-bench-tools.recreate-custom-fields",
-          "group": "execute@2"
         },
         {
           "command": "frappe-bench-tools.create-custom-command",
@@ -192,29 +184,6 @@
             "type": "boolean",
             "default": true,
             "description": "Whether to accept keyword arguments for the execute command."
-          }
-        }
-      },
-      {
-        "title": "Frappe Bench Tools: Recreate Custom Fields",
-        "properties": {
-          "frappeBenchTools.recreateCustomFieldsMethods": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "description": "Dotted paths of the functions that recreate the custom fields, executed in order (e.g. the after_install of your app)."
-          },
-          "frappeBenchTools.acceptSiteForRecreate": {
-            "type": "boolean",
-            "default": true,
-            "description": "Whether to accept the site name (pre-filled with siteName) for the recreate custom fields command."
-          },
-          "frappeBenchTools.confirmRecreateCustomFields": {
-            "type": "boolean",
-            "default": true,
-            "description": "Whether to ask for confirmation before deleting all Custom Field records."
           }
         }
       },

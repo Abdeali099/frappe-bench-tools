@@ -8,11 +8,8 @@ const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
 const CUSTOM_COMMAND_TERMINAL_NAME = "Bench Command";
 
-const CUSTOM_FIELD_DOCTYPE = "Custom Field";
-
 const CUSTOM_COMMANDS_SETTING = "customCommands";
 
-// placeholders that are filled in before a command is run
 const PLACEHOLDERS = {
   "{site}": {
     value: (config) => config.siteName,
@@ -31,10 +28,6 @@ const KEY_WORDS = {
   AS: "as",
 };
 
-/**
- * Reads configuration from workspace settings.
- * @returns {object} Bench tool configurations
- */
 function getBenchToolConfig() {
   const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
 
@@ -48,31 +41,22 @@ function getBenchToolConfig() {
       config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
     acceptArgsForExecute: config.get("acceptArgsForExecute"),
     acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
-    recreateCustomFieldsMethods: config.get("recreateCustomFieldsMethods") || [],
-    acceptSiteForRecreate: config.get("acceptSiteForRecreate"),
-    confirmRecreateCustomFields: config.get("confirmRecreateCustomFields"),
     customCommandTerminalName:
       config.get("customCommandTerminalName") || CUSTOM_COMMAND_TERMINAL_NAME,
     customCommands: config.get(CUSTOM_COMMANDS_SETTING) || {},
   };
 }
 
-/**
- * Gets the bench console command based on the workspace configuration.
- * @returns {string} Console command (e.g. "bench --site mysite console --autoreload")
- */
 function getConsoleCommand() {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
-  // add site if specified
   if (config.siteName) {
     parts.push("--site", config.siteName);
   }
 
   parts.push("console");
 
-  // add autoreload if enabled
   if (config.autoReload) {
     parts.push("--autoreload");
   }
@@ -80,24 +64,15 @@ function getConsoleCommand() {
   return parts.join(" ");
 }
 
-/**
- * Gets the bench execute command for a given python path and optional args/kwargs.
- * @param {string} pythonPath
- * @param {string|null} args - Python list as string (e.g. '["a", "b"]')
- * @param {string|null} kwargs - Python dict as string (e.g. '{"key": "val"}')
- * @returns {string} Bench execute command (e.g. "bench --site mysite execute my.module.func --args '["a", "b"]' --kwargs '{"key": "val"}'")
- */
 function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
-  // add site if specified
   if (config.siteName) {
     parts.push("--site", config.siteName);
   }
 
-  parts.push("execute");
-  parts.push(pythonPath);
+  parts.push("execute", pythonPath);
 
   if (args && config.acceptArgsForExecute) {
     parts.push("--args", `'${args}'`);
@@ -110,57 +85,10 @@ function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   return parts.join(" ");
 }
 
-/**
- * Prefixes a bench command with the site, if any.
- * @param {string} site - empty for the default bench site
- * @returns {string} e.g. "bench --site mysite"
- */
-function getBenchCommand(site) {
-  return site ? `bench --site ${site}` : "bench";
-}
-
-/**
- * Gets the steps to recreate custom fields on a site.
- * Every Custom Field record is deleted first, and the setup methods are then
- * executed to create them again.
- * @param {string} site - empty for the default bench site
- * @returns {string[]} steps, in the order they must run
- */
-function getRecreateCustomFieldsSteps(site) {
-  const { recreateCustomFieldsMethods } = getBenchToolConfig();
-  const bench = getBenchCommand(site);
-
-  return [
-    `${bench} execute 'frappe.db.delete("${CUSTOM_FIELD_DOCTYPE}")'`,
-    // deleting via the db skips the doctype cache, hence the explicit clear
-    `${bench} clear-cache`,
-    ...recreateCustomFieldsMethods.map((method) => `${bench} execute ${method}`),
-  ];
-}
-
-/**
- * Chains the steps into a single command, so that they run one after another
- * and stop at the first failure.
- * @param {string[]} steps
- * @returns {string} chained command
- */
-function chainCommands(steps) {
-  return steps.join(" && ");
-}
-
-/**
- * Gets the custom commands from the workspace configuration.
- * @returns {object} custom commands, as name to command
- */
 function getCustomCommands() {
   return getBenchToolConfig().customCommands;
 }
 
-/**
- * Resolves every placeholder once, so the same values are used for every
- * command in a list.
- * @returns {object} placeholder to its value, empty when it cannot be resolved
- */
 function getPlaceholderValues() {
   const config = getBenchToolConfig();
 
@@ -172,28 +100,14 @@ function getPlaceholderValues() {
   );
 }
 
-/**
- * Fills the placeholders of a custom command.
- * @param {string} command - e.g. "bench --site {site} migrate"
- * @param {object} values - as returned by getPlaceholderValues()
- * @returns {string} command to run (e.g. "bench --site mysite migrate")
- */
 function resolveCommand(command, values = getPlaceholderValues()) {
   return Object.entries(values).reduce(
-    // replaced through a function, so that a $ in a value is not a pattern
     (resolved, [placeholder, value]) =>
       resolved.replaceAll(placeholder, () => value),
     command
   );
 }
 
-/**
- * Gets the placeholders a command uses, but that cannot be filled in.
- * Without them the command would run with a placeholder left empty.
- * @param {string} command
- * @param {object} values - as returned by getPlaceholderValues()
- * @returns {string[]} placeholders and where they come from
- */
 function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
   return Object.keys(PLACEHOLDERS)
     .filter(
@@ -205,35 +119,23 @@ function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
     );
 }
 
-/**
- * Saves a custom command to the user settings.
- * @param {string} name - name shown when picking a command to run
- * @param {string} command - command to run, placeholders included
- */
 async function saveCustomCommand(name, command) {
   const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
-
-  // only what was saved before, so that the defaults are not copied along and
-  // frozen to what they are today
-  const saved = config.inspect(CUSTOM_COMMANDS_SETTING)?.globalValue || {};
+  const savedCommands =
+    config.inspect(CUSTOM_COMMANDS_SETTING)?.globalValue || {};
 
   await config.update(
     CUSTOM_COMMANDS_SETTING,
-    { ...saved, [name]: command },
+    { ...savedCommands, [name]: command },
     vscode.ConfigurationTarget.Global
   );
 }
 
-/**
- * Copies Python import statement using external extension.
- * @param {boolean} user_prompt - whether to prompt user to complete the statement if incomplete
- * @returns {Promise<string|null>} import statement or null if failed
- */
-async function copyImportStatement(user_prompt = true) {
+async function copyImportStatement({ promptUser = true } = {}) {
   try {
     await vscode.commands.executeCommand(IMPORT_COMMAND);
     let importStatement = await vscode.env.clipboard.readText();
-    if (user_prompt) {
+    if (promptUser) {
       importStatement = await completeImportStatementFromUser(importStatement);
     }
     return importStatement.trim();
@@ -242,10 +144,6 @@ async function copyImportStatement(user_prompt = true) {
   }
 }
 
-/** Prompt user to complete import statement if incomplete.
- * @param {string|null} importStatement - existing import statement (if any)
- * @returns {Promise<string|null>} completed import statement or null if cancelled
- */
 async function completeImportStatementFromUser(importStatement = null) {
   if (isValidImportStatement(importStatement, false)) {
     return importStatement.trim();
@@ -258,10 +156,6 @@ async function completeImportStatementFromUser(importStatement = null) {
   });
 }
 
-/**
- * Copies Python dotted path using external extension.
- * @returns {Promise<string|null>} python path or null if failed
- */
 async function copyPythonPath() {
   try {
     await vscode.commands.executeCommand(PYTHON_PATH_COMMAND);
@@ -272,21 +166,12 @@ async function copyPythonPath() {
   }
 }
 
-/** Notify user that Copy Python Path extension is missing.
- */
 function copyPythonPathExtensionMissing() {
   vscode.window.showErrorMessage(
     "Copy Python Path extension is not installed. Install it from https://marketplace.visualstudio.com/items?itemName=kawamataryo.copy-python-dotted-path."
   );
 }
 
-/**
- * Get selected text(s) from the active editor.
- * - If there are selections, return all selected texts.
- * - If no selection, return the full line(s) where the cursor(s) are.
- *
- * @returns {string[]} array of strings (one per selection/line)
- */
 function getSelectedTextOrLines() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
@@ -300,50 +185,30 @@ function getSelectedTextOrLines() {
     .map((sel) => {
       if (!sel.isEmpty) {
         return document.getText(sel);
-      } else {
-        const line = document.lineAt(sel.active.line);
-        return line.text;
       }
+      const line = document.lineAt(sel.active.line);
+      return line.text;
     })
     .filter((text) => text.length > 0);
 }
 
-/**
- * Extract function/class name from import statement.
- * Example: `from module.path import my_function` => "my_function"
- * @param {string} importStatement
- */
 function extractObjName(importStatement, callable = false) {
   const parts = importStatement.split(KEY_WORDS.IMPORT);
   if (parts.length < 2) return null;
-  const name = parts[1].trim().split(",")[0]; // first name only
+  const name = parts[1].trim().split(",")[0];
   return callable ? `${name}()` : name;
 }
 
-/** Convert import statement to import all (using *).
- * Example: `from module.path import my_function` => `from module.path import *`
- * @param {string} importStatement
- * @returns {string|null} modified import statement or null if not applicable
- */
 function convertToImportAll(importStatement) {
   if (!importStatement?.startsWith(`${KEY_WORDS.FROM} `)) {
     return null;
   }
 
-  // change last word to `*`
   const parts = importStatement.split(KEY_WORDS.IMPORT);
   parts[parts.length - 1] = ` ${KEY_WORDS.ALL}`;
-  importStatement = parts.join(KEY_WORDS.IMPORT).trim();
-
-  return importStatement;
+  return parts.join(KEY_WORDS.IMPORT).trim();
 }
 
-/** Convert import statement to import as (using alias).
- * Example: `from module.path import my_function` + `mf` => `from module.path import my_function as mf`
- * @param {string} importStatement
- * @param {string} alias
- * @returns {string|null} modified import statement or null if not applicable
- */
 function convertToImportAs(importStatement, alias) {
   if (!importStatement?.startsWith(`${KEY_WORDS.FROM} `)) {
     return null;
@@ -353,35 +218,27 @@ function convertToImportAs(importStatement, alias) {
     return importStatement;
   }
 
-  alias = alias.split(/\s+/)[0]; // first word only
+  const firstWordOfAlias = alias.split(/\s+/)[0];
 
-  //  add `as alias` to import statement
-  return `${importStatement} ${KEY_WORDS.AS} ${alias}`;
+  return `${importStatement} ${KEY_WORDS.AS} ${firstWordOfAlias}`;
 }
 
-/** Check if import statement is valid (starts with "from ").
- * @param {string} importStatement
- * @param {boolean} notify - whether to notify user if invalid
- * @returns {boolean} true if valid, false otherwise
- */
 function isValidImportStatement(importStatement, notify = true) {
   const parts = importStatement?.split(KEY_WORDS.IMPORT);
 
-  if (
+  const isValid = Boolean(
     importStatement &&
-    importStatement.startsWith(`${KEY_WORDS.FROM} `) &&
-    parts &&
-    parts.length >= 2 &&
-    parts[1].trim().length > 0
-  ) {
-    return true;
-  }
+      importStatement.startsWith(`${KEY_WORDS.FROM} `) &&
+      parts &&
+      parts.length >= 2 &&
+      parts[1].trim().length > 0
+  );
 
-  if (notify) {
+  if (!isValid && notify) {
     vscode.window.showInformationMessage("No valid import statement found.");
   }
 
-  return false;
+  return isValid;
 }
 
 module.exports = {
@@ -395,8 +252,6 @@ module.exports = {
   getBenchToolConfig,
   getConsoleCommand,
   getExecuteCommand,
-  getRecreateCustomFieldsSteps,
-  chainCommands,
   getCustomCommands,
   getPlaceholderValues,
   resolveCommand,
