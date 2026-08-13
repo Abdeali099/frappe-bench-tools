@@ -1,6 +1,4 @@
 const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
 
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
 const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
@@ -14,23 +12,6 @@ const CUSTOM_FIELD_DOCTYPE = "Custom Field";
 
 const CUSTOM_COMMANDS_SETTING = "customCommands";
 
-// a bench is the directory that holds the sites, apps live in ./apps
-const BENCH_MARKER = path.join("sites", "apps.txt");
-
-// how deep to search the workspace folders for an app
-const APP_SEARCH_DEPTH = 4;
-
-// searching these is never worth it, and they can be enormous
-const SKIPPED_DIRS = new Set([
-  "node_modules",
-  "env",
-  "__pycache__",
-  "dist",
-  "public",
-  "sites",
-  "logs",
-]);
-
 // placeholders that are filled in before a command is run
 const PLACEHOLDERS = {
   "{site}": {
@@ -40,14 +21,6 @@ const PLACEHOLDERS = {
   "{app}": {
     value: (config) => config.defaultApp,
     source: `${WORKSPACE_NAME}.defaultApp`,
-  },
-  "{bench}": {
-    value: () => getBenchPath(),
-    source: "a bench in the workspace folders",
-  },
-  "{appPath}": {
-    value: (config) => getAppPath(config.defaultApp),
-    source: "an app directory in the workspace folders",
   },
 };
 
@@ -176,71 +149,6 @@ function chainCommands(steps) {
 }
 
 /**
- * Finds the bench directory, so that commands do not depend on where the
- * terminal happens to be opened. Each workspace folder is walked up until a
- * bench is found, which covers opening an app rather than the bench itself.
- * @returns {string|null} path of the bench, or null if there is none
- */
-function getBenchPath() {
-  for (const folder of vscode.workspace.workspaceFolders || []) {
-    let dir = folder.uri.fsPath;
-
-    while (dir !== path.dirname(dir)) {
-      if (fs.existsSync(path.join(dir, BENCH_MARKER))) return dir;
-      dir = path.dirname(dir);
-    }
-  }
-
-  return null;
-}
-
-/**
- * Lists the sub directories worth searching, if the directory can be read.
- * @param {string} dir
- * @returns {string[]} absolute paths
- */
-function getSearchableDirs(dir) {
-  try {
-    return fs
-      .readdirSync(dir, { withFileTypes: true })
-      .filter(
-        (entry) =>
-          entry.isDirectory() &&
-          !entry.name.startsWith(".") &&
-          !SKIPPED_DIRS.has(entry.name)
-      )
-      .map((entry) => path.join(dir, entry.name));
-  } catch {
-    // unreadable directories are simply not searched
-    return [];
-  }
-}
-
-/**
- * Finds the directory of an app by searching the workspace folders for it.
- * The search is breadth first, so the outermost match wins, which is the app
- * itself rather than the python package of the same name inside it.
- * @param {string} app - app name, e.g. "erpnext"
- * @returns {string|null} path of the app, or null if it is not found
- */
-function getAppPath(app) {
-  if (!app) return null;
-
-  let dirs = (vscode.workspace.workspaceFolders || []).map(
-    (folder) => folder.uri.fsPath
-  );
-
-  for (let depth = 0; dirs.length && depth <= APP_SEARCH_DEPTH; depth++) {
-    const appDir = dirs.find((dir) => path.basename(dir) === app);
-    if (appDir) return appDir;
-
-    dirs = dirs.flatMap(getSearchableDirs);
-  }
-
-  return null;
-}
-
-/**
  * Gets the custom commands from the workspace configuration.
  * @returns {object} custom commands, as name to command
  */
@@ -249,8 +157,8 @@ function getCustomCommands() {
 }
 
 /**
- * Resolves every placeholder once, since searching the workspace for the bench
- * and the app is not worth repeating for each command.
+ * Resolves every placeholder once, so the same values are used for every
+ * command in a list.
  * @returns {object} placeholder to its value, empty when it cannot be resolved
  */
 function getPlaceholderValues() {
@@ -489,8 +397,6 @@ module.exports = {
   getExecuteCommand,
   getRecreateCustomFieldsSteps,
   chainCommands,
-  getBenchPath,
-  getAppPath,
   getCustomCommands,
   getPlaceholderValues,
   resolveCommand,

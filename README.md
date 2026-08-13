@@ -108,22 +108,13 @@ Commands can use placeholders, filled in from the settings when the command runs
 |---|---|
 | `{site}` | `frappeBenchTools.siteName` |
 | `{app}` | `frappeBenchTools.defaultApp` |
-| `{bench}` | the bench found in your workspace folders |
-| `{appPath}` | the directory of `defaultApp`, found in your workspace folders |
 
 So `bench --site {site} migrate` runs as `bench --site my-site.localhost migrate`.
-
-`{bench}` and `{appPath}` are not configured, they are searched for, so that commands never depend on where the terminal happens to be opened:
-
-- `{bench}` walks each workspace folder up until one holds `sites/apps.txt`.
-- `{appPath}` searches the workspace folders breadth first for a directory named after the app, so the app itself is found before the python package of the same name inside it. Apps kept outside `apps/` are found just as well.
-
-The terminal is opened at the bench for the same reason, since `bench` commands do not run from an app folder.
 
 One command is available out of the box, to bring an app up to date:
 
 ```bash
-git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate
+git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate
 ```
 
 The picker shows the command with its placeholders already filled in, so you always see exactly what will run. Saved commands live in `frappeBenchTools.customCommands`, so they can be edited or removed from the settings like any other setting.
@@ -294,7 +285,7 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 #### `frappeBenchTools.customCommands`
 
 - **Type**: `object` (command name to command)
-- **Description**: The saved commands, using `{site}`, `{app}`, `{bench}` and `{appPath}` as placeholders.
+- **Description**: The saved commands, using `{site}` and `{app}` as placeholders.
 
 **Example:**
 
@@ -302,7 +293,7 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 {
   "frappeBenchTools.customCommandTerminalName": "Bench Command",
   "frappeBenchTools.customCommands": {
-    "Update App": "git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate",
+    "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate",
     "Migrate Site": "bench --site {site} migrate",
     "Run Tests": "bench --site {site} run-tests --app {app}"
   }

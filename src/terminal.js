@@ -1,9 +1,5 @@
 const vscode = require("vscode");
-const {
-  getBenchToolConfig,
-  getConsoleCommand,
-  getBenchPath,
-} = require("./utils");
+const { getBenchToolConfig, getConsoleCommand } = require("./utils");
 
 const DELAY = 1500;
 const BRACKET_START = "\x1b[200~";
@@ -28,11 +24,7 @@ async function getOrCreateTerminal(name, startupCommand = null) {
     let terminal = vscode.window.terminals.find((t) => t.name === name);
 
     if (!terminal) {
-      // bench commands only work from the bench, not from the opened app
-      terminal = vscode.window.createTerminal({
-        name,
-        cwd: getBenchPath() || undefined,
-      });
+      terminal = vscode.window.createTerminal(name);
       terminal.show();
 
       // wait for shell init (like auto `source ...`)

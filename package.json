@@ -232,9 +232,9 @@
               "type": "string"
             },
             "default": {
-              "Update App": "git -C {appPath} pull && bench setup requirements && bench build --app {app} && bench migrate"
+              "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate"
             },
-            "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`. `{bench}` and `{appPath}` are searched for in the workspace folders."
+            "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`."
           }
         }
       }
