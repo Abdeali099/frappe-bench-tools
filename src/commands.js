@@ -13,6 +13,7 @@ const {
   getPlaceholderValues,
   resolveCommand,
   getUnresolvedPlaceholders,
+  askForPlaceholderValues,
   saveCustomCommand,
   PLACEHOLDERS,
 } = require("./utils");
@@ -164,15 +165,14 @@ async function handleBenchExecute() {
 }
 
 /** Create a custom command.
- * Prompts for a name and the command itself, then optionally a site and app
- * to bake into its {site}/{app} placeholders, and saves it to the user settings.
+ * Prompts for a name and the command itself, and saves it to the user settings.
  */
 async function handleCreateCustomCommand() {
   const commands = getCustomCommands();
 
   const name = (
     await vscode.window.showInputBox({
-      prompt: "Name for the command",
+      prompt: "Enter a name for the command",
       placeHolder: "e.g. Update App",
       validateInput: (value) =>
         value.trim() ? null : "The name cannot be empty.",
@@ -181,11 +181,11 @@ async function handleCreateCustomCommand() {
 
   if (!name) return;
 
-  let command = (
+  const command = (
     await vscode.window.showInputBox({
-      prompt: `Command to run (${Object.keys(PLACEHOLDERS).join(
+      prompt: `Enter the command to run (${Object.keys(PLACEHOLDERS).join(
         ", "
-      )} filled in for you)`,
+      )} are filled in for you)`,
       placeHolder: "e.g. bench --site {site} migrate",
       // an existing name edits that command, rather than silently replacing it
       value: commands[name],
@@ -195,31 +195,6 @@ async function handleCreateCustomCommand() {
   )?.trim();
 
   if (!command) return;
-
-  const site = (
-    await vscode.window.showInputBox({
-      prompt:
-        "Bake a site into {site}, or leave blank to fill from settings when it runs",
-      placeHolder: "e.g. mysite.localhost",
-    })
-  )?.trim();
-
-  const app = (
-    await vscode.window.showInputBox({
-      prompt:
-        "Bake an app into {app}, or leave blank to fill from settings when it runs",
-      placeHolder: "e.g. erpnext",
-    })
-  )?.trim();
-
-  const overrides = {
-    ...(site && { "{site}": site }),
-    ...(app && { "{app}": app }),
-  };
-
-  if (Object.keys(overrides).length) {
-    command = resolveCommand(command, overrides);
-  }
 
   await saveCustomCommand(name, command);
 
@@ -242,29 +217,35 @@ async function handleRunCustomCommand() {
     return;
   }
 
-  const values = getPlaceholderValues();
+  let values = getPlaceholderValues();
 
   const picked = await vscode.window.showQuickPick(
     commands.map(([name, command]) => ({
       label: name,
-      // the resolved command is both shown and run, so that what the pick
-      // says is exactly what happens
+      // shows the command as it would run, so that the values it is about to
+      // use are visible before picking it
       detail: resolveCommand(command, values),
-      unresolved: getUnresolvedPlaceholders(command, values),
+      command,
     })),
     { placeHolder: "Select a command to run", matchOnDetail: true }
   );
 
   if (!picked) return;
 
-  if (picked.unresolved.length) {
+  if (getBenchToolConfig().askForVariableValues) {
+    values = await askForPlaceholderValues(picked.command, values);
+    if (!values) return;
+  }
+
+  const unresolved = getUnresolvedPlaceholders(picked.command, values);
+  if (unresolved.length) {
     vscode.window.showErrorMessage(
-      `Cannot run "${picked.label}": ${picked.unresolved.join(", ")}.`
+      `Cannot run "${picked.label}": ${unresolved.join(", ")}.`
     );
     return;
   }
 
-  await writeToCustomCommandTerminal(picked.detail);
+  await writeToCustomCommandTerminal(resolveCommand(picked.command, values));
 }
 
 // ++++++++ Register all commands +++++++++ //

@@ -1,3 +1,4 @@
+const path = require("path");
 const vscode = require("vscode");
 
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
@@ -10,15 +11,24 @@ const CUSTOM_COMMAND_TERMINAL_NAME = "Bench Command";
 
 const CUSTOM_COMMANDS_SETTING = "customCommands";
 
+// the folder every app of a bench lives in
+const APPS_DIR = "apps";
+
 // placeholders that are filled in before a command is run
 const PLACEHOLDERS = {
   "{site}": {
+    label: "site",
     value: (config) => config.siteName,
     source: `${WORKSPACE_NAME}.siteName`,
+    placeHolder: "e.g. mysite.localhost",
   },
   "{app}": {
-    value: (config) => config.defaultApp,
+    label: "app",
+    // falls back to the app folder open in the workspace, so that it works
+    // without any setting for the app you are in
+    value: (config) => config.defaultApp || getWorkspaceApp(),
     source: `${WORKSPACE_NAME}.defaultApp`,
+    placeHolder: "e.g. erpnext",
   },
 };
 
@@ -49,7 +59,26 @@ function getBenchToolConfig() {
     customCommandTerminalName:
       config.get("customCommandTerminalName") || CUSTOM_COMMAND_TERMINAL_NAME,
     customCommands: config.get(CUSTOM_COMMANDS_SETTING) || {},
+    askForVariableValues: config.get("askForVariableValues"),
   };
+}
+
+/**
+ * Gets the app name from the folder open in the workspace, a single app folder
+ * being what the extension expects (e.g. ~/frappe-bench/apps/erpnext => erpnext).
+ * @returns {string} app name, empty when there is no folder open
+ */
+function getWorkspaceApp() {
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!folder) return "";
+
+  const parts = folder.uri.fsPath.split(path.sep).filter(Boolean);
+
+  // a folder deeper in the bench (apps/erpnext/erpnext) still names its app
+  const appsIndex = parts.lastIndexOf(APPS_DIR);
+  if (appsIndex !== -1 && parts[appsIndex + 1]) return parts[appsIndex + 1];
+
+  return parts[parts.length - 1] || "";
 }
 
 /**
@@ -160,6 +189,41 @@ function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
       (placeholder) =>
         `${placeholder} needs ${PLACEHOLDERS[placeholder].source}`
     );
+}
+
+/**
+ * Asks for the value of every placeholder a command uses, prefilled with the
+ * value the command would otherwise run with.
+ * @param {string} command
+ * @param {object} values - as returned by getPlaceholderValues()
+ * @returns {Promise<object|null>} values to run with, null when cancelled
+ */
+async function askForPlaceholderValues(
+  command,
+  values = getPlaceholderValues()
+) {
+  const asked = { ...values };
+
+  for (const [placeholder, { label, placeHolder }] of Object.entries(
+    PLACEHOLDERS
+  )) {
+    if (!command.includes(placeholder)) continue;
+
+    const entered = await vscode.window.showInputBox({
+      prompt: `Value for ${placeholder}`,
+      placeHolder,
+      value: values[placeholder],
+      validateInput: (value) =>
+        value.trim() ? null : `The ${label} cannot be empty.`,
+    });
+
+    // cancelled, so that the command is not run with a value not meant for it
+    if (entered === undefined) return null;
+
+    asked[placeholder] = entered.trim();
+  }
+
+  return asked;
 }
 
 /**
@@ -356,6 +420,8 @@ module.exports = {
   getPlaceholderValues,
   resolveCommand,
   getUnresolvedPlaceholders,
+  askForPlaceholderValues,
+  getWorkspaceApp,
   saveCustomCommand,
   PLACEHOLDERS,
 };

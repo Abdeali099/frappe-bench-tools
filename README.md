@@ -88,14 +88,18 @@ Save the commands you run over and over, and pick them from a list instead of re
 - **Create Custom Command** — prompts for a name and the command, then saves it to your settings.
 - **Run Custom Command** — pick a saved command by name (type to filter) and it runs in its own terminal.
 
-Commands can use placeholders, filled in from the settings when the command runs:
+Commands can use placeholders, filled in when the command runs:
 
 | Placeholder | Filled in from |
 |---|---|
 | `{site}` | `frappeBenchTools.siteName` |
-| `{app}` | `frappeBenchTools.defaultApp` |
+| `{app}` | `frappeBenchTools.defaultApp`, or the app folder open in the workspace |
 
 So `bench --site {site} migrate` runs as `bench --site my-site.localhost migrate`.
+
+Since a single app folder is expected to be open, `{app}` needs no setting at all — with `~/frappe-bench/apps/erpnext` open it fills in as `erpnext`. Set `frappeBenchTools.defaultApp` only to override that.
+
+To use different values now and then, turn on `frappeBenchTools.askForVariableValues`. Every placeholder the picked command uses is then asked for, prefilled with the value above, so a command can be run against another site or app without changing any setting.
 
 One command is available out of the box, to bring an app up to date:
 
@@ -161,7 +165,7 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 #### `frappeBenchTools.defaultApp`
 
 - **Type**: `string`
-- **Default**: `"frappe"`
+- **Default**: `""` (the app folder open in the workspace)
 - **Description**: App name used to fill the `{app}` placeholder of custom commands.
 
 **Example:**
@@ -239,11 +243,18 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 - **Type**: `object` (command name to command)
 - **Description**: The saved commands, using `{site}` and `{app}` as placeholders.
 
+#### `frappeBenchTools.askForVariableValues`
+
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Ask for the value of every variable a custom command uses, each time it is run, prefilled with the value it would otherwise use.
+
 **Example:**
 
 ```json
 {
   "frappeBenchTools.customCommandTerminalName": "Bench Command",
+  "frappeBenchTools.askForVariableValues": false,
   "frappeBenchTools.customCommands": {
     "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate",
     "Migrate Site": "bench --site {site} migrate",
