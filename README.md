@@ -85,43 +85,14 @@ bench --site <site> execute <path.to.function>
 
 Save the commands you run over and over, and pick them from a list instead of retyping them.
 
-- **Create Custom Command** — prompts for a name and the command, then saves it to your settings.
-- **Run Custom Command** — pick a saved command by name (type to filter) and it runs in its own terminal.
+- **Create Custom Command** — save a command under a name, e.g. `Bench Migrate and Build` for `bench --site {site} migrate && bench build --app {app}` (available out of the box).
+- **Run Custom Command** — pick `Bench Migrate and Build` from the list and it runs in its own terminal.
 
-Commands can use placeholders, filled in when the command runs:
+`{site}` and `{app}` are filled in when the command runs, from `frappeBenchTools.siteName` and `frappeBenchTools.defaultApp`. With a single app folder open, `{app}` falls back to that folder's name, so it needs no setting of its own.
 
-| Placeholder | Filled in from |
-|---|---|
-| `{site}` | `frappeBenchTools.siteName` |
-| `{app}` | `frappeBenchTools.defaultApp`, or the app folder open in the workspace |
+Turn on `frappeBenchTools.askForVariableValues` to be asked for these values each time instead, prefilled and editable. It applies to the console and execute commands too.
 
-So `bench --site {site} migrate` runs as `bench --site my-site.localhost migrate`.
-
-Since a single app folder is expected to be open, `{app}` needs no setting at all — with `~/frappe-bench/apps/erpnext` open it fills in as `erpnext`. Set `frappeBenchTools.defaultApp` only to override that.
-
-To use different values now and then, turn on [`frappeBenchTools.askForVariableValues`](#-asking-for-values-before-a-command-runs). Every placeholder the picked command uses is then asked for, prefilled with the value above.
-
-One command is available out of the box, to bring an app up to date:
-
-```bash
-git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate
-```
-
-The picker shows the command with its placeholders already filled in, so you always see exactly what will run. Saved commands live in `frappeBenchTools.customCommands`, so they can be edited or removed from the settings like any other setting.
-
-### ❓ Asking for Values Before a Command Runs
-
-Turn on `frappeBenchTools.askForVariableValues` to be asked for the values a command uses each time you run it, instead of always taking them from the settings. It covers every command of the extension:
-
-| Command | Asks for |
-|---|---|
-| Open Bench Console (and the paste, import and run-function commands that open it) | the site, when the console terminal is opened |
-| Bench Execute Python Function | the site, before the args and kwargs |
-| Run Custom Command | every placeholder the picked command uses |
-
-Each box comes prefilled with the value the command would otherwise run with, so accepting them all is a matter of pressing <kbd>Enter</kbd>. Dismissing a box cancels the run — no terminal is opened and nothing is sent.
-
-For the console and execute commands the site may be left blank, which runs them against the default site of the bench. A custom command needs every placeholder it uses filled in, since a blank would leave it half written.
+Saved commands live under `frappeBenchTools.customCommands` in your user `settings.json` — open it with **Preferences: Open User Settings (JSON)** from the Command Palette — and can be edited or removed there directly.
 
 ### 🖱️ Context Menu Integration
 
@@ -186,7 +157,7 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 
 - **Type**: `boolean`
 - **Default**: `false`
-- **Description**: Ask for variable values when running commands. See [Asking for Values Before a Command Runs](#-asking-for-values-before-a-command-runs).
+- **Description**: Ask for variable values when running commands, prefilled and editable.
 
 **Example:**
 
@@ -262,16 +233,14 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 #### `frappeBenchTools.customCommands`
 
 - **Type**: `object` (command name to command)
-- **Description**: The saved commands, using `{site}` and `{app}` as placeholders.
+- **Description**: The saved commands, using `{site}` and `{app}` as placeholders. Stored in your user `settings.json`.
 
 **Example:**
 
 ```json
 {
-  "frappeBenchTools.customCommandTerminalName": "Bench Command",
   "frappeBenchTools.customCommands": {
-    "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate",
-    "Migrate Site": "bench --site {site} migrate",
+    "Bench Migrate and Build": "bench --site {site} migrate && bench build --app {app}",
     "Run Tests": "bench --site {site} run-tests --app {app}"
   }
 }

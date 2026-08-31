@@ -206,7 +206,7 @@
               "type": "string"
             },
             "default": {
-              "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate"
+              "Bench Migrate and Build": "bench --site {site} migrate && bench build --app {app}"
             },
             "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`."
           }
