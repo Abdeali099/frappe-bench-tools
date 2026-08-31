@@ -153,7 +153,7 @@
           "frappeBenchTools.askForVariableValues": {
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Ask for the value of every variable a command uses (`{site}`, `{app}`) each time it is run, prefilled with the value it would otherwise use."
+            "markdownDescription": "Ask for variable values when running commands."
           }
         }
       },

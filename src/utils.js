@@ -20,15 +20,15 @@ const APP = "{app}";
 // placeholders that are filled in before a command is run
 const PLACEHOLDERS = {
   [SITE]: {
-    label: "site",
+    label: "Site",
     value: (config) => config.siteName,
     source: `${WORKSPACE_NAME}.siteName`,
     prompt: "Site to run in",
     placeHolder: "e.g. mysite.localhost",
-    blankHint: "the default site of the bench",
+    blankHint: "default site",
   },
   [APP]: {
-    label: "app",
+    label: "App",
     // falls back to the app folder open in the workspace, so that it works
     // without any setting for the app you are in
     value: (config) => config.defaultApp || getWorkspaceApp(),
@@ -233,13 +233,13 @@ async function resolvePlaceholderValues(placeholders, allowBlank = false) {
     const blankAllowed = allowBlank && blankHint;
 
     const entered = await vscode.window.showInputBox({
-      prompt: blankAllowed ? `${prompt}, or blank for ${blankHint}` : prompt,
+      prompt: blankAllowed ? `${prompt} (blank: ${blankHint})` : prompt,
       placeHolder,
       // prefilled, so that the value it would otherwise run with is
       // one keypress away
       value: values[placeholder],
       validateInput: (value) =>
-        blankAllowed || value.trim() ? null : `The ${label} cannot be empty.`,
+        blankAllowed || value.trim() ? null : `${label} cannot be empty.`,
     });
 
     // cancelled, so that the command is not run with a value not meant for it

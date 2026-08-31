@@ -186,7 +186,7 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 
 - **Type**: `boolean`
 - **Default**: `false`
-- **Description**: Ask for the value of every variable a command uses (`{site}`, `{app}`) each time it is run, prefilled with the value it would otherwise use. See [Asking for Values Before a Command Runs](#-asking-for-values-before-a-command-runs).
+- **Description**: Ask for variable values when running commands. See [Asking for Values Before a Command Runs](#-asking-for-values-before-a-command-runs).
 
 **Example:**
 

@@ -177,25 +177,25 @@ async function handleCreateCustomCommand() {
 
   const name = (
     await vscode.window.showInputBox({
-      prompt: "Enter a name for the command",
+      prompt: "Name for the command",
       placeHolder: "e.g. Update App",
       validateInput: (value) =>
-        value.trim() ? null : "The name cannot be empty.",
+        value.trim() ? null : "Name cannot be empty.",
     })
   )?.trim();
 
   if (!name) return;
 
+  const placeholders = Object.keys(PLACEHOLDERS).join(", ");
+
   const command = (
     await vscode.window.showInputBox({
-      prompt: `Enter the command to run (${Object.keys(PLACEHOLDERS).join(
-        ", "
-      )} are filled in for you)`,
+      prompt: `Command to run (use ${placeholders})`,
       placeHolder: "e.g. bench --site {site} migrate",
       // an existing name edits that command, rather than silently replacing it
       value: commands[name],
       validateInput: (value) =>
-        value.trim() ? null : "The command cannot be empty.",
+        value.trim() ? null : "Command cannot be empty.",
     })
   )?.trim();
 
@@ -237,7 +237,7 @@ async function handleRunCustomCommand() {
 
   if (!picked) return;
 
-  // a blank value here would leave the command half written, so it is not allowed
+  // a blank would leave the command half written, so it is not allowed
   const values = await resolvePlaceholderValues(
     getUsedPlaceholders(picked.command)
   );
