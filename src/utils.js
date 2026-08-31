@@ -1,3 +1,4 @@
+const path = require("path");
 const vscode = require("vscode");
 
 const IMPORT_COMMAND = "copy-python-path.copy-python-import-statement";
@@ -6,6 +7,36 @@ const PYTHON_PATH_COMMAND = "copy-python-path.copy-python-path";
 const WORKSPACE_NAME = "frappeBenchTools";
 const CONSOLE_TERMINAL_NAME = "Bench Console";
 const EXECUTE_TERMINAL_NAME = "Bench Execute";
+const CUSTOM_COMMAND_TERMINAL_NAME = "Bench Command";
+
+const CUSTOM_COMMANDS_SETTING = "customCommands";
+
+// the folder every app of a bench lives in
+const APPS_DIR = "apps";
+
+const SITE = "{site}";
+const APP = "{app}";
+
+// placeholders that are filled in before a command is run
+const PLACEHOLDERS = {
+  [SITE]: {
+    label: "Site",
+    value: (config) => config.siteName,
+    source: `${WORKSPACE_NAME}.siteName`,
+    prompt: "Site to run in",
+    placeHolder: "e.g. mysite.localhost",
+    blankHint: "default site",
+  },
+  [APP]: {
+    label: "App",
+    // falls back to the app folder open in the workspace, so that it works
+    // without any setting for the app you are in
+    value: (config) => config.defaultApp || getWorkspaceApp(),
+    source: `${WORKSPACE_NAME}.defaultApp`,
+    prompt: "App to run for",
+    placeHolder: "e.g. erpnext",
+  },
+};
 
 const KEY_WORDS = {
   IMPORT: "import",
@@ -23,6 +54,7 @@ function getBenchToolConfig() {
 
   return {
     siteName: config.get("siteName"),
+    defaultApp: config.get("defaultApp"),
     consoleTerminalName:
       config.get("consoleTerminalName") || CONSOLE_TERMINAL_NAME,
     autoReload: config.get("autoReload"),
@@ -30,20 +62,43 @@ function getBenchToolConfig() {
       config.get("executeTerminalName") || EXECUTE_TERMINAL_NAME,
     acceptArgsForExecute: config.get("acceptArgsForExecute"),
     acceptKwargsForExecute: config.get("acceptKwargsForExecute"),
+    customCommandTerminalName:
+      config.get("customCommandTerminalName") || CUSTOM_COMMAND_TERMINAL_NAME,
+    customCommands: config.get(CUSTOM_COMMANDS_SETTING) || {},
+    askForVariableValues: config.get("askForVariableValues"),
   };
 }
 
 /**
+ * Gets the app name from the folder open in the workspace, a single app folder
+ * being what the extension expects (e.g. ~/frappe-bench/apps/erpnext => erpnext).
+ * @returns {string} app name, empty when there is no folder open
+ */
+function getWorkspaceApp() {
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!folder) return "";
+
+  const parts = folder.uri.fsPath.split(path.sep).filter(Boolean);
+
+  // a folder deeper in the bench (apps/erpnext/erpnext) still names its app
+  const appsIndex = parts.lastIndexOf(APPS_DIR);
+  if (appsIndex !== -1 && parts[appsIndex + 1]) return parts[appsIndex + 1];
+
+  return parts.at(-1) || "";
+}
+
+/**
  * Gets the bench console command based on the workspace configuration.
+ * @param {object} values - as returned by getPlaceholderValues()
  * @returns {string} Console command (e.g. "bench --site mysite console --autoreload")
  */
-function getConsoleCommand() {
+function getConsoleCommand(values = getPlaceholderValues()) {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
   // add site if specified
-  if (config.siteName) {
-    parts.push("--site", config.siteName);
+  if (values[SITE]) {
+    parts.push("--site", values[SITE]);
   }
 
   parts.push("console");
@@ -61,15 +116,21 @@ function getConsoleCommand() {
  * @param {string} pythonPath
  * @param {string|null} args - Python list as string (e.g. '["a", "b"]')
  * @param {string|null} kwargs - Python dict as string (e.g. '{"key": "val"}')
+ * @param {object} values - as returned by getPlaceholderValues()
  * @returns {string} Bench execute command (e.g. "bench --site mysite execute my.module.func --args '["a", "b"]' --kwargs '{"key": "val"}'")
  */
-function getExecuteCommand(pythonPath, args = null, kwargs = null) {
+function getExecuteCommand(
+  pythonPath,
+  args = null,
+  kwargs = null,
+  values = getPlaceholderValues()
+) {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
   // add site if specified
-  if (config.siteName) {
-    parts.push("--site", config.siteName);
+  if (values[SITE]) {
+    parts.push("--site", values[SITE]);
   }
 
   parts.push("execute");
@@ -84,6 +145,129 @@ function getExecuteCommand(pythonPath, args = null, kwargs = null) {
   }
 
   return parts.join(" ");
+}
+
+/**
+ * Gets the custom commands from the workspace configuration.
+ * @returns {object} custom commands, as name to command
+ */
+function getCustomCommands() {
+  return getBenchToolConfig().customCommands;
+}
+
+/**
+ * Resolves every placeholder once, so the same values are used for every
+ * command in a list.
+ * @returns {object} placeholder to its value, empty when it cannot be resolved
+ */
+function getPlaceholderValues() {
+  const config = getBenchToolConfig();
+
+  return Object.fromEntries(
+    Object.entries(PLACEHOLDERS).map(([placeholder, { value }]) => [
+      placeholder,
+      value(config) || "",
+    ])
+  );
+}
+
+/**
+ * Fills the placeholders of a custom command.
+ * @param {string} command - e.g. "bench --site {site} migrate"
+ * @param {object} values - as returned by getPlaceholderValues()
+ * @returns {string} command to run (e.g. "bench --site mysite migrate")
+ */
+function resolveCommand(command, values = getPlaceholderValues()) {
+  return Object.entries(values).reduce(
+    // replaced through a function, so that a $ in a value is not a pattern
+    (resolved, [placeholder, value]) =>
+      resolved.replaceAll(placeholder, () => value),
+    command
+  );
+}
+
+/**
+ * Gets the placeholders a command uses.
+ * @param {string} command
+ * @returns {string[]} placeholders
+ */
+function getUsedPlaceholders(command) {
+  return Object.keys(PLACEHOLDERS).filter((placeholder) =>
+    command.includes(placeholder)
+  );
+}
+
+/**
+ * Gets the placeholders a command uses, but that cannot be filled in.
+ * Without them the command would run with a placeholder left empty.
+ * @param {string} command
+ * @param {object} values - as returned by getPlaceholderValues()
+ * @returns {string[]} placeholders and where they come from
+ */
+function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
+  return getUsedPlaceholders(command)
+    .filter((placeholder) => !values[placeholder])
+    .map(
+      (placeholder) =>
+        `${placeholder} needs ${PLACEHOLDERS[placeholder].source}`
+    );
+}
+
+/**
+ * Resolves the values a command runs with: the ones from the settings, or, when
+ * askForVariableValues is turned on, the ones entered for them.
+ * @param {string[]} placeholders - the placeholders the command uses
+ * @param {boolean} allowBlank - whether a blank value means something to the
+ *   command, rather than leaving it half written
+ * @returns {Promise<object|null>} values to run with, null when cancelled
+ */
+async function resolvePlaceholderValues(placeholders, allowBlank = false) {
+  const values = getPlaceholderValues();
+
+  if (!getBenchToolConfig().askForVariableValues) return values;
+
+  for (const placeholder of placeholders) {
+    const { label, prompt, placeHolder, blankHint } = PLACEHOLDERS[placeholder];
+
+    // blank is only an answer where the command says what it falls back to
+    const blankAllowed = allowBlank && blankHint;
+
+    const entered = await vscode.window.showInputBox({
+      prompt: blankAllowed ? `${prompt} (blank: ${blankHint})` : prompt,
+      placeHolder,
+      // prefilled, so that the value it would otherwise run with is
+      // one keypress away
+      value: values[placeholder],
+      validateInput: (value) =>
+        blankAllowed || value.trim() ? null : `${label} cannot be empty.`,
+    });
+
+    // cancelled, so that the command is not run with a value not meant for it
+    if (entered === undefined) return null;
+
+    values[placeholder] = entered.trim();
+  }
+
+  return values;
+}
+
+/**
+ * Saves a custom command to the user settings.
+ * @param {string} name - name shown when picking a command to run
+ * @param {string} command - command to run, placeholders included
+ */
+async function saveCustomCommand(name, command) {
+  const config = vscode.workspace.getConfiguration(WORKSPACE_NAME);
+
+  // only what was saved before, so that the defaults are not copied along and
+  // frozen to what they are today
+  const saved = config.inspect(CUSTOM_COMMANDS_SETTING)?.globalValue || {};
+
+  await config.update(
+    CUSTOM_COMMANDS_SETTING,
+    { ...saved, [name]: command },
+    vscode.ConfigurationTarget.Global
+  );
 }
 
 /**
@@ -257,4 +441,14 @@ module.exports = {
   getBenchToolConfig,
   getConsoleCommand,
   getExecuteCommand,
+  getCustomCommands,
+  getPlaceholderValues,
+  resolveCommand,
+  getUnresolvedPlaceholders,
+  getUsedPlaceholders,
+  resolvePlaceholderValues,
+  getWorkspaceApp,
+  saveCustomCommand,
+  PLACEHOLDERS,
+  SITE,
 };

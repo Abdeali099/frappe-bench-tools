@@ -69,6 +69,14 @@
       {
         "command": "frappe-bench-tools.bench-execute-command",
         "title": "Frappe Bench: Execute Python Function"
+      },
+      {
+        "command": "frappe-bench-tools.create-custom-command",
+        "title": "Frappe Bench: Create Custom Command"
+      },
+      {
+        "command": "frappe-bench-tools.run-custom-command",
+        "title": "Frappe Bench: Run Custom Command"
       }
     ],
     "submenus": [
@@ -117,6 +125,14 @@
         {
           "command": "frappe-bench-tools.bench-execute-command",
           "group": "execute@1"
+        },
+        {
+          "command": "frappe-bench-tools.create-custom-command",
+          "group": "custom@1"
+        },
+        {
+          "command": "frappe-bench-tools.run-custom-command",
+          "group": "custom@2"
         }
       ]
     },
@@ -128,6 +144,16 @@
             "type": "string",
             "default": "frappe.localhost",
             "description": "The site name to use when running bench commands (otherwise default bench site will be used)."
+          },
+          "frappeBenchTools.defaultApp": {
+            "type": "string",
+            "default": "",
+            "description": "The app name to use when running bench commands (otherwise the app folder open in the workspace will be used)."
+          },
+          "frappeBenchTools.askForVariableValues": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Ask for variable values when running commands."
           }
         }
       },
@@ -163,6 +189,26 @@
             "type": "boolean",
             "default": true,
             "description": "Whether to accept keyword arguments for the execute command."
+          }
+        }
+      },
+      {
+        "title": "Frappe Bench Tools: Custom Commands",
+        "properties": {
+          "frappeBenchTools.customCommandTerminalName": {
+            "type": "string",
+            "default": "Bench Command",
+            "description": "The name of the custom command terminal."
+          },
+          "frappeBenchTools.customCommands": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {
+              "Bench Migrate and Build": "bench --site {site} migrate && bench build --app {app}"
+            },
+            "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`."
           }
         }
       }

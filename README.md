@@ -81,6 +81,19 @@ bench --site <site> execute <path.to.function>
 
 ![Bench Execute Demo](./assets/gifs/bench-execute-demo.gif)
 
+### 🛠️ Custom Commands
+
+Save the commands you run over and over, and pick them from a list instead of retyping them.
+
+- **Create Custom Command** — save a command under a name, e.g. `Bench Migrate and Build` for `bench --site {site} migrate && bench build --app {app}` (available out of the box).
+- **Run Custom Command** — pick `Bench Migrate and Build` from the list and it runs in its own terminal.
+
+`{site}` and `{app}` are filled in when the command runs, from `frappeBenchTools.siteName` and `frappeBenchTools.defaultApp`. With a single app folder open, `{app}` falls back to that folder's name, so it needs no setting of its own.
+
+Turn on `frappeBenchTools.askForVariableValues` to be asked for these values each time instead, prefilled and editable. It applies to the console and execute commands too.
+
+Saved commands live under `frappeBenchTools.customCommands` in your user `settings.json` — open it with **Preferences: Open User Settings (JSON)** from the Command Palette — and can be edited or removed there directly.
+
 ### 🖱️ Context Menu Integration
 
 Access all features through a dedicated **“Frappe Bench”** submenu in the right-click context menu.
@@ -134,11 +147,25 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 - **Default**: `"frappe.localhost"`
 - **Description**: Site name for running Bench commands.
 
+#### `frappeBenchTools.defaultApp`
+
+- **Type**: `string`
+- **Default**: `""` (the app folder open in the workspace)
+- **Description**: App name used to fill the `{app}` placeholder of custom commands.
+
+#### `frappeBenchTools.askForVariableValues`
+
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Ask for variable values when running commands, prefilled and editable.
+
 **Example:**
 
 ```json
 {
-  "frappeBenchTools.siteName": "my-site.localhost"
+  "frappeBenchTools.siteName": "my-site.localhost",
+  "frappeBenchTools.defaultApp": "erpnext",
+  "frappeBenchTools.askForVariableValues": false
 }
 ```
 
@@ -195,6 +222,30 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 }
 ```
 
+### 🛠️ Custom Command Settings
+
+#### `frappeBenchTools.customCommandTerminalName`
+
+- **Type**: `string`
+- **Default**: `"Bench Command"`
+- **Description**: Terminal name for custom commands.
+
+#### `frappeBenchTools.customCommands`
+
+- **Type**: `object` (command name to command)
+- **Description**: The saved commands, using `{site}` and `{app}` as placeholders. Stored in your user `settings.json`.
+
+**Example:**
+
+```json
+{
+  "frappeBenchTools.customCommands": {
+    "Bench Migrate and Build": "bench --site {site} migrate && bench build --app {app}",
+    "Run Tests": "bench --site {site} run-tests --app {app}"
+  }
+}
+```
+
 ![Configs](./assets/images/configs.png)
 
 ## Commands
@@ -211,6 +262,8 @@ All commands are available from the **Command Palette** (<kbd>Ctrl</kbd>+<kbd>Sh
 | `Import As in Bench Console`       | Import with custom alias                       |
 | `Run Function in Bench Console`    | Import and execute function                    |
 | `Bench Execute Python Function`    | Execute function using bench execute command   |
+| `Create Custom Command`            | Save a command to run later                    |
+| `Run Custom Command`               | Pick a saved command and run it                |
 
 ## Troubleshooting
 
