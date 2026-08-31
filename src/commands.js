@@ -13,9 +13,11 @@ const {
   getPlaceholderValues,
   resolveCommand,
   getUnresolvedPlaceholders,
-  askForPlaceholderValues,
+  getUsedPlaceholders,
+  resolvePlaceholderValues,
   saveCustomCommand,
   PLACEHOLDERS,
+  SITE,
 } = require("./utils");
 const {
   writeToConsole,
@@ -131,6 +133,9 @@ async function handleBenchExecute() {
     return;
   }
 
+  const values = await resolvePlaceholderValues([SITE], true);
+  if (!values) return;
+
   const { acceptArgsForExecute, acceptKwargsForExecute } = getBenchToolConfig();
 
   let args = null;
@@ -158,7 +163,7 @@ async function handleBenchExecute() {
   kwargs = kwargs ? kwargs.trim() : null;
 
   // Build command
-  const cmd = getExecuteCommand(pythonPath, args, kwargs);
+  const cmd = getExecuteCommand(pythonPath, args, kwargs, values);
 
   // Use a dedicated terminal for bench execute
   await writeToExecuteTerminal(cmd);
@@ -217,14 +222,14 @@ async function handleRunCustomCommand() {
     return;
   }
 
-  let values = getPlaceholderValues();
+  const defaults = getPlaceholderValues();
 
   const picked = await vscode.window.showQuickPick(
     commands.map(([name, command]) => ({
       label: name,
       // shows the command as it would run, so that the values it is about to
       // use are visible before picking it
-      detail: resolveCommand(command, values),
+      detail: resolveCommand(command, defaults),
       command,
     })),
     { placeHolder: "Select a command to run", matchOnDetail: true }
@@ -232,10 +237,12 @@ async function handleRunCustomCommand() {
 
   if (!picked) return;
 
-  if (getBenchToolConfig().askForVariableValues) {
-    values = await askForPlaceholderValues(picked.command, values);
-    if (!values) return;
-  }
+  // a blank value here would leave the command half written, so it is not allowed
+  const values = await resolvePlaceholderValues(
+    getUsedPlaceholders(picked.command)
+  );
+
+  if (!values) return;
 
   const unresolved = getUnresolvedPlaceholders(picked.command, values);
   if (unresolved.length) {

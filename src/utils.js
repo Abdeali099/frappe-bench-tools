@@ -14,20 +14,26 @@ const CUSTOM_COMMANDS_SETTING = "customCommands";
 // the folder every app of a bench lives in
 const APPS_DIR = "apps";
 
+const SITE = "{site}";
+const APP = "{app}";
+
 // placeholders that are filled in before a command is run
 const PLACEHOLDERS = {
-  "{site}": {
+  [SITE]: {
     label: "site",
     value: (config) => config.siteName,
     source: `${WORKSPACE_NAME}.siteName`,
+    prompt: "Site to run in",
     placeHolder: "e.g. mysite.localhost",
+    blankHint: "the default site of the bench",
   },
-  "{app}": {
+  [APP]: {
     label: "app",
     // falls back to the app folder open in the workspace, so that it works
     // without any setting for the app you are in
     value: (config) => config.defaultApp || getWorkspaceApp(),
     source: `${WORKSPACE_NAME}.defaultApp`,
+    prompt: "App to run for",
     placeHolder: "e.g. erpnext",
   },
 };
@@ -78,20 +84,21 @@ function getWorkspaceApp() {
   const appsIndex = parts.lastIndexOf(APPS_DIR);
   if (appsIndex !== -1 && parts[appsIndex + 1]) return parts[appsIndex + 1];
 
-  return parts[parts.length - 1] || "";
+  return parts.at(-1) || "";
 }
 
 /**
  * Gets the bench console command based on the workspace configuration.
+ * @param {object} values - as returned by getPlaceholderValues()
  * @returns {string} Console command (e.g. "bench --site mysite console --autoreload")
  */
-function getConsoleCommand() {
+function getConsoleCommand(values = getPlaceholderValues()) {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
   // add site if specified
-  if (config.siteName) {
-    parts.push("--site", config.siteName);
+  if (values[SITE]) {
+    parts.push("--site", values[SITE]);
   }
 
   parts.push("console");
@@ -109,15 +116,21 @@ function getConsoleCommand() {
  * @param {string} pythonPath
  * @param {string|null} args - Python list as string (e.g. '["a", "b"]')
  * @param {string|null} kwargs - Python dict as string (e.g. '{"key": "val"}')
+ * @param {object} values - as returned by getPlaceholderValues()
  * @returns {string} Bench execute command (e.g. "bench --site mysite execute my.module.func --args '["a", "b"]' --kwargs '{"key": "val"}'")
  */
-function getExecuteCommand(pythonPath, args = null, kwargs = null) {
+function getExecuteCommand(
+  pythonPath,
+  args = null,
+  kwargs = null,
+  values = getPlaceholderValues()
+) {
   const config = getBenchToolConfig();
   const parts = ["bench"];
 
   // add site if specified
-  if (config.siteName) {
-    parts.push("--site", config.siteName);
+  if (values[SITE]) {
+    parts.push("--site", values[SITE]);
   }
 
   parts.push("execute");
@@ -174,6 +187,17 @@ function resolveCommand(command, values = getPlaceholderValues()) {
 }
 
 /**
+ * Gets the placeholders a command uses.
+ * @param {string} command
+ * @returns {string[]} placeholders
+ */
+function getUsedPlaceholders(command) {
+  return Object.keys(PLACEHOLDERS).filter((placeholder) =>
+    command.includes(placeholder)
+  );
+}
+
+/**
  * Gets the placeholders a command uses, but that cannot be filled in.
  * Without them the command would run with a placeholder left empty.
  * @param {string} command
@@ -181,10 +205,8 @@ function resolveCommand(command, values = getPlaceholderValues()) {
  * @returns {string[]} placeholders and where they come from
  */
 function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
-  return Object.keys(PLACEHOLDERS)
-    .filter(
-      (placeholder) => command.includes(placeholder) && !values[placeholder]
-    )
+  return getUsedPlaceholders(command)
+    .filter((placeholder) => !values[placeholder])
     .map(
       (placeholder) =>
         `${placeholder} needs ${PLACEHOLDERS[placeholder].source}`
@@ -192,38 +214,41 @@ function getUnresolvedPlaceholders(command, values = getPlaceholderValues()) {
 }
 
 /**
- * Asks for the value of every placeholder a command uses, prefilled with the
- * value the command would otherwise run with.
- * @param {string} command
- * @param {object} values - as returned by getPlaceholderValues()
+ * Resolves the values a command runs with: the ones from the settings, or, when
+ * askForVariableValues is turned on, the ones entered for them.
+ * @param {string[]} placeholders - the placeholders the command uses
+ * @param {boolean} allowBlank - whether a blank value means something to the
+ *   command, rather than leaving it half written
  * @returns {Promise<object|null>} values to run with, null when cancelled
  */
-async function askForPlaceholderValues(
-  command,
-  values = getPlaceholderValues()
-) {
-  const asked = { ...values };
+async function resolvePlaceholderValues(placeholders, allowBlank = false) {
+  const values = getPlaceholderValues();
 
-  for (const [placeholder, { label, placeHolder }] of Object.entries(
-    PLACEHOLDERS
-  )) {
-    if (!command.includes(placeholder)) continue;
+  if (!getBenchToolConfig().askForVariableValues) return values;
+
+  for (const placeholder of placeholders) {
+    const { label, prompt, placeHolder, blankHint } = PLACEHOLDERS[placeholder];
+
+    // blank is only an answer where the command says what it falls back to
+    const blankAllowed = allowBlank && blankHint;
 
     const entered = await vscode.window.showInputBox({
-      prompt: `Value for ${placeholder}`,
+      prompt: blankAllowed ? `${prompt}, or blank for ${blankHint}` : prompt,
       placeHolder,
+      // prefilled, so that the value it would otherwise run with is
+      // one keypress away
       value: values[placeholder],
       validateInput: (value) =>
-        value.trim() ? null : `The ${label} cannot be empty.`,
+        blankAllowed || value.trim() ? null : `The ${label} cannot be empty.`,
     });
 
     // cancelled, so that the command is not run with a value not meant for it
     if (entered === undefined) return null;
 
-    asked[placeholder] = entered.trim();
+    values[placeholder] = entered.trim();
   }
 
-  return asked;
+  return values;
 }
 
 /**
@@ -420,8 +445,10 @@ module.exports = {
   getPlaceholderValues,
   resolveCommand,
   getUnresolvedPlaceholders,
-  askForPlaceholderValues,
+  getUsedPlaceholders,
+  resolvePlaceholderValues,
   getWorkspaceApp,
   saveCustomCommand,
   PLACEHOLDERS,
+  SITE,
 };

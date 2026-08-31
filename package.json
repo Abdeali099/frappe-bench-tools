@@ -149,6 +149,11 @@
             "type": "string",
             "default": "",
             "description": "The app name to use when running bench commands (otherwise the app folder open in the workspace will be used)."
+          },
+          "frappeBenchTools.askForVariableValues": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Ask for the value of every variable a command uses (`{site}`, `{app}`) each time it is run, prefilled with the value it would otherwise use."
           }
         }
       },
@@ -204,11 +209,6 @@
               "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate"
             },
             "markdownDescription": "Commands to run from the `Run Custom Command` palette, as name to command. Use `{site}` for the configured `#frappeBenchTools.siteName#` and `{app}` for the configured `#frappeBenchTools.defaultApp#`."
-          },
-          "frappeBenchTools.askForVariableValues": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Ask for the value of every variable a custom command uses (`{site}`, `{app}`) each time it is run, prefilled with the value it would otherwise use."
           }
         }
       }

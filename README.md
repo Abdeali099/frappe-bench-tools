@@ -99,7 +99,7 @@ So `bench --site {site} migrate` runs as `bench --site my-site.localhost migrate
 
 Since a single app folder is expected to be open, `{app}` needs no setting at all — with `~/frappe-bench/apps/erpnext` open it fills in as `erpnext`. Set `frappeBenchTools.defaultApp` only to override that.
 
-To use different values now and then, turn on `frappeBenchTools.askForVariableValues`. Every placeholder the picked command uses is then asked for, prefilled with the value above, so a command can be run against another site or app without changing any setting.
+To use different values now and then, turn on [`frappeBenchTools.askForVariableValues`](#-asking-for-values-before-a-command-runs). Every placeholder the picked command uses is then asked for, prefilled with the value above.
 
 One command is available out of the box, to bring an app up to date:
 
@@ -108,6 +108,20 @@ git -C apps/{app} pull && bench setup requirements && bench build --app {app} &&
 ```
 
 The picker shows the command with its placeholders already filled in, so you always see exactly what will run. Saved commands live in `frappeBenchTools.customCommands`, so they can be edited or removed from the settings like any other setting.
+
+### ❓ Asking for Values Before a Command Runs
+
+Turn on `frappeBenchTools.askForVariableValues` to be asked for the values a command uses each time you run it, instead of always taking them from the settings. It covers every command of the extension:
+
+| Command | Asks for |
+|---|---|
+| Open Bench Console (and the paste, import and run-function commands that open it) | the site, when the console terminal is opened |
+| Bench Execute Python Function | the site, before the args and kwargs |
+| Run Custom Command | every placeholder the picked command uses |
+
+Each box comes prefilled with the value the command would otherwise run with, so accepting them all is a matter of pressing <kbd>Enter</kbd>. Dismissing a box cancels the run — no terminal is opened and nothing is sent.
+
+For the console and execute commands the site may be left blank, which runs them against the default site of the bench. A custom command needs every placeholder it uses filled in, since a blank would leave it half written.
 
 ### 🖱️ Context Menu Integration
 
@@ -168,12 +182,19 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 - **Default**: `""` (the app folder open in the workspace)
 - **Description**: App name used to fill the `{app}` placeholder of custom commands.
 
+#### `frappeBenchTools.askForVariableValues`
+
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Ask for the value of every variable a command uses (`{site}`, `{app}`) each time it is run, prefilled with the value it would otherwise use. See [Asking for Values Before a Command Runs](#-asking-for-values-before-a-command-runs).
+
 **Example:**
 
 ```json
 {
   "frappeBenchTools.siteName": "my-site.localhost",
-  "frappeBenchTools.defaultApp": "erpnext"
+  "frappeBenchTools.defaultApp": "erpnext",
+  "frappeBenchTools.askForVariableValues": false
 }
 ```
 
@@ -243,18 +264,11 @@ Configure the extension from VS Code settings (<kbd>Ctrl</kbd>+<kbd>,</kbd> or <
 - **Type**: `object` (command name to command)
 - **Description**: The saved commands, using `{site}` and `{app}` as placeholders.
 
-#### `frappeBenchTools.askForVariableValues`
-
-- **Type**: `boolean`
-- **Default**: `false`
-- **Description**: Ask for the value of every variable a custom command uses, each time it is run, prefilled with the value it would otherwise use.
-
 **Example:**
 
 ```json
 {
   "frappeBenchTools.customCommandTerminalName": "Bench Command",
-  "frappeBenchTools.askForVariableValues": false,
   "frappeBenchTools.customCommands": {
     "Update App": "git -C apps/{app} pull && bench setup requirements && bench build --app {app} && bench migrate",
     "Migrate Site": "bench --site {site} migrate",

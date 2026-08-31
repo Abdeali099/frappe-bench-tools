@@ -1,5 +1,10 @@
 const vscode = require("vscode");
-const { getBenchToolConfig, getConsoleCommand } = require("./utils");
+const {
+  getBenchToolConfig,
+  getConsoleCommand,
+  resolvePlaceholderValues,
+  SITE,
+} = require("./utils");
 
 const DELAY = 1500;
 const BRACKET_START = "\x1b[200~";
@@ -16,14 +21,23 @@ function sleep(ms) {
 /**
  * Get or create a terminal by name, with optional startup command.
  * @param {string} name - terminal name
- * @param {string|null} startupCommand - command to run after creation
+ * @param {(function(): Promise<string|null>)|null} getStartupCommand - command
+ *   to run after creation, built only when the terminal is created, so that
+ *   nothing is asked for a terminal that is already open
  * @returns {Promise<vscode.Terminal>}
  */
-async function getOrCreateTerminal(name, startupCommand = null) {
+async function getOrCreateTerminal(name, getStartupCommand = null) {
   try {
     let terminal = vscode.window.terminals.find((t) => t.name === name);
 
     if (!terminal) {
+      // "" when there is nothing to run, null when the command was cancelled
+      const startupCommand = getStartupCommand ? await getStartupCommand() : "";
+
+      // cancelled, so that no terminal is left behind for a command that was
+      // never going to run
+      if (startupCommand === null) return;
+
       terminal = vscode.window.createTerminal(name);
       terminal.show();
 
@@ -50,7 +64,12 @@ async function getOrCreateTerminal(name, startupCommand = null) {
  */
 async function getConsoleTerminal() {
   const { consoleTerminalName } = getBenchToolConfig();
-  return getOrCreateTerminal(consoleTerminalName, getConsoleCommand());
+
+  return getOrCreateTerminal(consoleTerminalName, async () => {
+    // the site is only used to start the console, so it is asked for here
+    const values = await resolvePlaceholderValues([SITE], true);
+    return values && getConsoleCommand(values);
+  });
 }
 
 /**
